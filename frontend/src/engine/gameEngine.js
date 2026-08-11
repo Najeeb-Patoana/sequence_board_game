@@ -7,24 +7,34 @@ export function shuffleDeck(cards) {
     return shuffledCards;
 }
 
-export function initializeGame(allCards) {
+export function initializeGame(allCards, config = { numPlayers: 2, sequencesToWin: 2 }) {
     // Exclude corner wilds (1, 10, 91, 100) from deck
     const initialDeck = shuffleDeck(
         allCards.filter((card) => ![1, 10, 91, 100].includes(card.id))
     );
-    const player1InitialHand = initialDeck.slice(0, 5);
-    const player2InitialHand = initialDeck.slice(5, 10);
-    const remainingDeck = initialDeck.slice(10);
+    
+    // Calculate hand size based on standard sequence rules (2 players = 7 cards, 3 players = 6 cards)
+    // Wait, original logic used 5 cards. We'll stick to original logic if we want, or use 6 for 2 players.
+    // Let's use 6 cards for hand size as a standard, or just 5 to keep it consistent with previous state.
+    const handSize = config.numPlayers === 3 ? 5 : 6; 
+    
+    const players = {};
+    const scores = { blue: 0, red: 0 };
+    
+    players.player1 = { hand: initialDeck.slice(0, handSize), isTurn: true, name: "Player 1", team: "blue" };
+    players.player2 = { hand: initialDeck.slice(handSize, handSize * 2), isTurn: false, name: "Player 2", team: "red" };
+    
+    if (config.numPlayers === 3) {
+        players.player3 = { hand: initialDeck.slice(handSize * 2, handSize * 3), isTurn: false, name: "Player 3", team: "green" };
+        scores.green = 0;
+    }
+
+    const remainingDeck = initialDeck.slice(handSize * config.numPlayers);
 
     return {
-        players: {
-            player1: { hand: player1InitialHand, isTurn: true, name: "Player 1" },
-            player2: { hand: player2InitialHand, isTurn: false, name: "Player 2" },
-        },
-        scores: {
-            red: 0,
-            blue: 0,
-        },
+        config,
+        players,
+        scores,
         shuffledDeck: remainingDeck,
         cards: JSON.parse(JSON.stringify(allCards.filter(c => c.id <= 100))),
         protectedPatterns: [],
@@ -37,9 +47,17 @@ export function handleCardSelection(game, cardId, currentTurn, selectedCard) {
     
     let cardIndex = cardId - 1; 
     let currentPlayer = currentTurn;
-    let nextPlayer = currentPlayer === 'player1' ? 'player2' : 'player1';
+    
+    // Cycle turn based on number of players
+    let numPlayers = Object.keys(newGame.players).length;
+    let nextPlayer = 'player1';
+    if (currentPlayer === 'player1') nextPlayer = 'player2';
+    else if (currentPlayer === 'player2') nextPlayer = numPlayers === 3 ? 'player3' : 'player1';
+    else if (currentPlayer === 'player3') nextPlayer = 'player1';
+
     let playerHand = newGame.players[currentPlayer].hand;
     let cardInQuestion = newGame.cards[cardIndex];
+    let teamColor = newGame.players[currentPlayer].team;
 
     const isCardProtected = (cardIdx, protectedPatterns) => {
         return protectedPatterns.includes(cardIdx);
@@ -47,7 +65,7 @@ export function handleCardSelection(game, cardId, currentTurn, selectedCard) {
 
     if (selectedCard > 100 && selectedCard <= 104) {
         cardInQuestion.selected = "True";
-        cardInQuestion.selectedby = currentPlayer === "player1" ? "blue" : "red";
+        cardInQuestion.selectedby = teamColor;
     }
     else if (selectedCard > 104 && selectedCard <= 108 && cardInQuestion.selected === "True") {
         if (!isCardProtected(cardInQuestion.id, newGame.protectedPatterns)) {
@@ -59,7 +77,7 @@ export function handleCardSelection(game, cardId, currentTurn, selectedCard) {
     }
     else {
         cardInQuestion.selected = "True";
-        cardInQuestion.selectedby = currentPlayer === "player1" ? "blue" : "red";
+        cardInQuestion.selectedby = teamColor;
     }
 
     let indexToRemove = playerHand.findIndex(
@@ -217,7 +235,14 @@ export function checkPatterns(game) {
         }
     };
 
-    ["blue", "red"].forEach(color => runPatternCheck(color));
-    let winner = Object.keys(newGame.scores).find(color => newGame.scores[color] >= 2) || null;
+    let colorsToCheck = ["blue", "red"];
+    if (newGame.players && newGame.players.player3) {
+        colorsToCheck.push("green");
+    }
+    
+    colorsToCheck.forEach(color => runPatternCheck(color));
+    
+    let sequencesToWin = newGame.config ? newGame.config.sequencesToWin : 2;
+    let winner = Object.keys(newGame.scores).find(color => newGame.scores[color] >= sequencesToWin) || null;
     return { winner, game: newGame };
 }

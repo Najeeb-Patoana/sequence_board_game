@@ -28,7 +28,12 @@ export default function OfflineGame() {
 
     useEffect(() => {
         if (location.state?.p1Name && location.state?.p2Name) {
-            startLocalGame(location.state.p1Name, location.state.p2Name);
+            startLocalGame(
+                location.state.p1Name, 
+                location.state.p2Name, 
+                location.state.p3Name, 
+                location.state.sequencesToWin
+            );
         } else {
             // No state passed, redirect to setup
             navigate('/offline');

@@ -7,6 +7,14 @@ export default function GameInfoPanel({ scores, deckCount, players, playingAs })
             <h2 className="text-center mb-4 text-gradient">Game Info</h2>
             
             <div className="flex flex-col gap-4">
+                <div className="glass-card p-4 text-center">
+                    <h3 className="text-sm text-muted uppercase tracking-wider mb-2 font-semibold">Deck</h3>
+                    <div className="text-3xl font-bold text-white mb-1">
+                        {deckCount} <span className="text-lg text-muted font-normal">/ 104</span>
+                    </div>
+                    <div className="text-sm text-muted">Cards Remaining</div>
+                </div>
+
                 <div className="flex justify-between items-center border-b border-gray-700 pb-2">
                     <span className="text-muted">Goal</span>
                     <span className="font-heading font-bold">2 Sequences</span>

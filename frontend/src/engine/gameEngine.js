@@ -42,6 +42,7 @@ export function initializeGame(allCards, config = { numPlayers: 2, sequencesToWi
 }
 
 export function handleCardSelection(game, cardId, currentTurn, selectedCardId) {
+    console.log(`handleCardSelection called. cardId: ${cardId}, currentTurn: ${currentTurn}, selectedCardId: ${selectedCardId}`);
     let newGame = JSON.parse(JSON.stringify(game));
     let cardIndex = cardId - 1; 
     let currentPlayer = currentTurn;
@@ -50,6 +51,7 @@ export function handleCardSelection(game, cardId, currentTurn, selectedCardId) {
     let cardFromHandIndex = playerHand.findIndex(c => c.id === selectedCardId);
     
     if (cardFromHandIndex === -1) {
+        console.warn("handleCardSelection failed: Card not in hand");
         return { success: false, message: "Card not in hand" };
     }
     let cardFromHand = playerHand[cardFromHandIndex];
@@ -61,21 +63,37 @@ export function handleCardSelection(game, cardId, currentTurn, selectedCardId) {
     // Validate move logic
     if (selectedCardId > 104 && selectedCardId <= 108) {
         // One-Eyed Jack: Remove opponent token
-        if (cardInQuestion.selected !== "True") return { success: false, message: "Empty space" };
-        if (cardInQuestion.selectedby === teamColor) return { success: false, message: "Cannot remove own token" };
-        if (isCardProtected(cardInQuestion.id, newGame.protectedPatterns)) return { success: false, message: "Protected" };
+        if (cardInQuestion.selected !== "True") {
+            console.warn("handleCardSelection failed: One-Eyed Jack used on empty space");
+            return { success: false, message: "Empty space" };
+        }
+        if (cardInQuestion.selectedby === teamColor) {
+            console.warn("handleCardSelection failed: Cannot remove own token");
+            return { success: false, message: "Cannot remove own token" };
+        }
+        if (isCardProtected(cardInQuestion.id, newGame.protectedPatterns)) {
+            console.warn("handleCardSelection failed: Protected pattern");
+            return { success: false, message: "Protected" };
+        }
         
         cardInQuestion.selected = false;
         cardInQuestion.selectedby = "";
     } else if (selectedCardId > 100 && selectedCardId <= 104) {
         // Two-Eyed Jack: Place token anywhere empty
-        if (cardInQuestion.selected === "True") return { success: false, message: "Already occupied" };
+        if (cardInQuestion.selected === "True") {
+            console.warn("handleCardSelection failed: Two-Eyed Jack used on occupied space");
+            return { success: false, message: "Already occupied" };
+        }
         cardInQuestion.selected = "True";
         cardInQuestion.selectedby = teamColor;
     } else {
         // Normal card
-        if (cardInQuestion.selected === "True") return { success: false, message: "Already occupied" };
+        if (cardInQuestion.selected === "True") {
+            console.warn("handleCardSelection failed: Space already occupied");
+            return { success: false, message: "Already occupied" };
+        }
         if (!cardFromHand.matches || !cardFromHand.matches.includes(cardId)) {
+            console.warn(`handleCardSelection failed: Card doesn't match board space. cardFromHand.matches: ${cardFromHand.matches}, cardId: ${cardId}`);
             return { success: false, message: "Card does not match board space" };
         }
         cardInQuestion.selected = "True";
@@ -101,6 +119,7 @@ export function handleCardSelection(game, cardId, currentTurn, selectedCardId) {
     newGame.players[nextPlayer].isTurn = true;
     newGame.players[currentPlayer].hand = playerHand;
 
+    console.log("handleCardSelection success! New turn:", nextPlayer);
     return { success: true, game: newGame, currentPlayer, nextPlayer };
 }
 

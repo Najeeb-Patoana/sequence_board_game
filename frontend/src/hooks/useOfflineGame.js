@@ -23,12 +23,12 @@ export function useOfflineGame() {
     const makeMove = useCallback((cardId, selectedCard) => {
         if (!gameState) return;
 
-        const currentTurn = gameState.players.player1.isTurn ? 'player1' : 'player2';
+        const currentTurn = Object.keys(gameState.players).find(key => gameState.players[key].isTurn);
         
         let result = handleCardSelection(gameState, cardId, currentTurn, selectedCard);
         
         if (!result.success) {
-            // Invalid move, handled by UI feedback ideally
+            console.warn("Invalid move:", result.message, "Card:", selectedCard, "Board:", cardId);
             return false;
         }
 

@@ -174,11 +174,11 @@ h1, h2, h3, h4, h5, h6 {
 /* Game Board */
 .game-layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 2rem;
-  padding: 2rem;
+  padding: 1.5rem;
   height: 100vh;
-  max-width: 1600px;
+  max-width: 100%; /* use full width */
   margin: 0 auto;
 }
 
@@ -209,18 +209,18 @@ h1, h2, h3, h4, h5, h6 {
   gap: 4px;
   background: var(--board-border);
   padding: 8px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
   aspect-ratio: 1/1;
   width: 100%;
-  max-width: 800px;
+  max-width: min(100%, calc(100vh - 260px)); /* Maximizes board size while leaving room for player hand */
   margin: 0 auto;
 }
 
 .board-cell {
   position: relative;
   background: #fff;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -229,8 +229,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .board-cell img {
-  width: 90%;
-  height: 90%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   pointer-events: none;
 }
@@ -240,8 +240,65 @@ h1, h2, h3, h4, h5, h6 {
 }
 .board-cell.corner::after {
   content: '★';
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #fbbf24;
+}
+
+/* Landing Page Animations */
+.floating-card {
+    position: absolute;
+    width: 14vw;
+    min-width: 100px;
+    max-width: 200px;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
+}
+
+.card-1 {
+    top: 5%;
+    left: 10%;
+    animation: float1 15s ease-in-out infinite;
+}
+
+.card-2 {
+    bottom: 10%;
+    right: 10%;
+    animation: float2 18s ease-in-out infinite;
+}
+
+.card-3 {
+    top: 15%;
+    right: 15%;
+    width: 10vw;
+    animation: float3 20s ease-in-out infinite 2s;
+    opacity: 0.8;
+}
+
+.card-4 {
+    bottom: 20%;
+    left: 15%;
+    width: 12vw;
+    animation: float4 16s ease-in-out infinite 1s;
+    opacity: 0.9;
+}
+
+@keyframes float1 {
+    0%, 100% { transform: translateY(0) rotate(-15deg); }
+    50% { transform: translateY(-40px) rotate(-8deg); }
+}
+@keyframes float2 {
+    0%, 100% { transform: translateY(0) rotate(20deg); }
+    50% { transform: translateY(-30px) rotate(25deg); }
+}
+@keyframes float3 {
+    0%, 100% { transform: translateY(0) rotate(10deg); }
+    50% { transform: translateY(-25px) rotate(5deg); }
+}
+@keyframes float4 {
+    0%, 100% { transform: translateY(0) rotate(-25deg); }
+    50% { transform: translateY(30px) rotate(-15deg); }
 }
 
 .board-cell.highlight-valid {

@@ -41,56 +41,61 @@ export function initializeGame(allCards, config = { numPlayers: 2, sequencesToWi
     };
 }
 
-export function handleCardSelection(game, cardId, currentTurn, selectedCard) {
-    // We deep clone game so we don't mutate React state directly
+export function handleCardSelection(game, cardId, currentTurn, selectedCardId) {
     let newGame = JSON.parse(JSON.stringify(game));
-    
     let cardIndex = cardId - 1; 
     let currentPlayer = currentTurn;
     
-    // Cycle turn based on number of players
+    let playerHand = newGame.players[currentPlayer].hand;
+    let cardFromHandIndex = playerHand.findIndex(c => c.id === selectedCardId);
+    
+    if (cardFromHandIndex === -1) {
+        return { success: false, message: "Card not in hand" };
+    }
+    let cardFromHand = playerHand[cardFromHandIndex];
+    let cardInQuestion = newGame.cards[cardIndex];
+    let teamColor = newGame.players[currentPlayer].team;
+
+    const isCardProtected = (cardIdx, protectedPatterns) => newGame.protectedPatterns.includes(cardIdx);
+
+    // Validate move logic
+    if (selectedCardId > 104 && selectedCardId <= 108) {
+        // One-Eyed Jack: Remove opponent token
+        if (cardInQuestion.selected !== "True") return { success: false, message: "Empty space" };
+        if (cardInQuestion.selectedby === teamColor) return { success: false, message: "Cannot remove own token" };
+        if (isCardProtected(cardInQuestion.id, newGame.protectedPatterns)) return { success: false, message: "Protected" };
+        
+        cardInQuestion.selected = false;
+        cardInQuestion.selectedby = "";
+    } else if (selectedCardId > 100 && selectedCardId <= 104) {
+        // Two-Eyed Jack: Place token anywhere empty
+        if (cardInQuestion.selected === "True") return { success: false, message: "Already occupied" };
+        cardInQuestion.selected = "True";
+        cardInQuestion.selectedby = teamColor;
+    } else {
+        // Normal card
+        if (cardInQuestion.selected === "True") return { success: false, message: "Already occupied" };
+        if (!cardFromHand.matches || !cardFromHand.matches.includes(cardId)) {
+            return { success: false, message: "Card does not match board space" };
+        }
+        cardInQuestion.selected = "True";
+        cardInQuestion.selectedby = teamColor;
+    }
+
+    // Remove from hand
+    playerHand.splice(cardFromHandIndex, 1);
+
+    // Draw new card
+    if (newGame.shuffledDeck.length > 0) {
+        playerHand.push(newGame.shuffledDeck.shift());
+    }
+
+    // Next turn
     let numPlayers = Object.keys(newGame.players).length;
     let nextPlayer = 'player1';
     if (currentPlayer === 'player1') nextPlayer = 'player2';
     else if (currentPlayer === 'player2') nextPlayer = numPlayers === 3 ? 'player3' : 'player1';
     else if (currentPlayer === 'player3') nextPlayer = 'player1';
-
-    let playerHand = newGame.players[currentPlayer].hand;
-    let cardInQuestion = newGame.cards[cardIndex];
-    let teamColor = newGame.players[currentPlayer].team;
-
-    const isCardProtected = (cardIdx, protectedPatterns) => {
-        return protectedPatterns.includes(cardIdx);
-    }
-
-    if (selectedCard > 100 && selectedCard <= 104) {
-        cardInQuestion.selected = "True";
-        cardInQuestion.selectedby = teamColor;
-    }
-    else if (selectedCard > 104 && selectedCard <= 108 && cardInQuestion.selected === "True") {
-        if (!isCardProtected(cardInQuestion.id, newGame.protectedPatterns)) {
-            cardInQuestion.selected = false;
-            cardInQuestion.selectedby = "";
-        } else {
-            return { success: false, message: "Wrong move: Card is protected." };
-        }
-    }
-    else {
-        cardInQuestion.selected = "True";
-        cardInQuestion.selectedby = teamColor;
-    }
-
-    let indexToRemove = playerHand.findIndex(
-        (card) => card.id === selectedCard || (card.matches && card.matches.includes(cardId))
-    );
-    if (indexToRemove !== -1) {
-        playerHand.splice(indexToRemove, 1);
-    }
-
-    if (newGame.shuffledDeck.length > 0) {
-        let newCard = newGame.shuffledDeck.shift();
-        playerHand.push(newCard);
-    }
 
     newGame.players[currentPlayer].isTurn = false;
     newGame.players[nextPlayer].isTurn = true;

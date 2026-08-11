@@ -47,7 +47,7 @@ export default function OfflineGame() {
 
     const handleBoardClick = (cardId) => {
         if (selectedHandCard) {
-            const success = makeMove(cardId, selectedHandCard);
+            const success = makeMove(cardId, selectedHandCard.id);
             if (success) {
                 setSelectedHandCard(null);
                 setHoveredMatches([]);
@@ -57,31 +57,28 @@ export default function OfflineGame() {
 
     if (!gameState) return null;
 
-    const currentTurn = gameState.players.player1.isTurn ? 'player1' : 'player2';
+    const currentTurn = Object.keys(gameState.players).find(key => gameState.players[key].isTurn);
     const currentPlayerObj = gameState.players[currentTurn];
     
-    // For PassDeviceScreen, we need the NEXT player name, which is the currentTurn AFTER state updates.
-    // Since state is updated before PassDeviceScreen is shown, currentTurn is already the next player.
-
     return (
         <div className="game-layout relative">
             {/* Left Sidebar */}
             <div className="flex flex-col gap-6 h-full">
-                <button className="text-muted hover:text-white flex items-center gap-2 self-start transition-colors" onClick={handleQuit}>
-                    ← Quit Game
+                <button className="btn btn-secondary flex items-center gap-2 self-start py-2 px-4 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors border border-white/10" onClick={handleQuit}>
+                    ← Back to Menu
                 </button>
                 
                 <GameInfoPanel 
                     scores={gameState.scores} 
-                    deckCount={gameState.deckCount} 
+                    deckCount={gameState.shuffledDeck ? gameState.shuffledDeck.length : 0} 
                     players={gameState.players} 
-                    playingAs={null} // Offline doesn't have a "you", both play on this device
+                    playingAs={null} 
                 />
 
                 <div className="flex-1"></div>
 
                 <div className="flex flex-col items-center gap-4">
-                    <DeckDisplay count={gameState.deckCount} />
+                    <DeckDisplay count={gameState.shuffledDeck ? gameState.shuffledDeck.length : 0} />
                     <TurnIndicator 
                         currentTurn={currentTurn} 
                         playingAs={null} 

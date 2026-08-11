@@ -35,7 +35,7 @@ export default function PlayerHand({ hand, isMyTurn, selectedHandCard, onCardSel
                         onMouseEnter={() => handleMouseEnter(card)}
                         onMouseLeave={handleMouseLeave}
                     >
-                        {card.img && <img src={card.img} alt={`Card ${card.id}`} />}
+                        {card.img && <img src={card.img} alt={card.name || `Card ${card.id}`} title={card.name || `Card ${card.id}`} />}
                     </div>
                 );
             })}

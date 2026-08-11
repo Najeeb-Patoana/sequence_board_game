@@ -21,7 +21,7 @@ export default function GameBoard({ cards, hoveredCards = [], selectedBoardId, o
                             onClick={() => !isCorner && onBoardClick(card.id)}
                         >
                             {!isCorner && card.img && (
-                                <img src={card.img} alt={`Card ${card.id}`} />
+                                <img src={card.img} alt={card.name || `Card ${card.id}`} title={card.name || `Card ${card.id}`} />
                             )}
                             
                             {card.selected === "True" && (

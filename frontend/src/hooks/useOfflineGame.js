@@ -7,12 +7,16 @@ export function useOfflineGame() {
     const [status, setStatus] = useState('idle'); // idle, pass-device, playing, gameover
     const [winner, setWinner] = useState(null);
 
-    const startLocalGame = useCallback((player1Name, player2Name) => {
-        let initialGame = initializeGame(allCards);
+    const startLocalGame = useCallback((player1Name, player2Name, player3Name, sequencesToWin) => {
+        const numPlayers = player3Name ? 3 : 2;
+        let initialGame = initializeGame(allCards, { numPlayers, sequencesToWin });
         initialGame.players.player1.name = player1Name;
         initialGame.players.player2.name = player2Name;
+        if (numPlayers === 3) {
+            initialGame.players.player3.name = player3Name;
+        }
         setGameState(initialGame);
-        setStatus('playing'); // First player doesn't need 'pass-device' screen immediately
+        setStatus('playing'); 
         setWinner(null);
     }, []);
 

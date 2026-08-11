@@ -43,7 +43,7 @@ export default function HomePage() {
     }, []);
 
     return (
-        <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+        <div className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden">
             {/* Animated Background Cards */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
                 {backgroundCards.map((item, i) => (
@@ -57,7 +57,7 @@ export default function HomePage() {
                 ))}
             </div>
 
-            <div className="container relative z-10 flex flex-col items-center justify-center pt-12 pb-24">
+            <div className="container relative z-10 flex flex-col items-center justify-center">
                 <div className="text-center mb-16">
                     <h1 
                         className="text-6xl md:text-8xl mb-6 text-gradient tracking-tighter font-extrabold" 

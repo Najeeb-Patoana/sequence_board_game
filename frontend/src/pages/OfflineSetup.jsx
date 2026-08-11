@@ -24,12 +24,12 @@ export default function OfflineSetup() {
     };
 
     return (
-        <div className="container max-w-lg mx-auto mt-12">
-            <button className="text-muted hover:text-white mb-8 flex items-center gap-2 transition-colors" onClick={() => navigate('/')}>
+        <div className="container max-w-lg mx-auto mt-12 flex flex-col items-center">
+            <button className="btn btn-secondary flex items-center gap-2 self-start py-2 px-4 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors border border-white/10 mb-8" onClick={() => navigate('/')}>
                 ← Back to Menu
             </button>
 
-            <div className="glass-card p-8">
+            <div className="glass-card p-8 w-full">
                 <h2 className="text-3xl mb-8 text-center text-gradient">Local Game Setup</h2>
                 
                 <form onSubmit={handleStart} className="flex flex-col gap-6">

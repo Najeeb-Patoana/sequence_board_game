@@ -201,7 +201,6 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
 }
 
-/* The Grid */
 .board-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
@@ -211,10 +210,8 @@ h1, h2, h3, h4, h5, h6 {
   padding: 6px;
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-  aspect-ratio: 1/1;
   height: 100%;
-  width: auto;
-  max-width: 100%; /* Prevent overflow on narrow screens */
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -245,71 +242,25 @@ h1, h2, h3, h4, h5, h6 {
   color: #fbbf24;
 }
 
-/* Landing Page Animations */
-.floating-card {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 14vw;
-    min-width: 100px;
-    max-width: 200px;
-    height: auto;
-    border-radius: 12px;
-    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
-    opacity: 0;
-    margin-left: -7vw;
-    margin-top: -10vw;
+/* Dynamic Landing Page Animations */
+@keyframes dealSpread {
+    from { 
+        transform: translate(0, 0) scale(0) rotate(0deg); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translate(calc(var(--tx) - 50vw), calc(var(--ty) - 50vh)) scale(var(--scale)) rotate(var(--rot)); 
+        opacity: var(--final-opacity, 0.6); 
+    }
 }
 
-.card-1 {
-    animation: deal1 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, float1 15s ease-in-out infinite 1s;
-}
-@keyframes deal1 {
-    from { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-    to { transform: translate(-25vw, -25vh) scale(1) rotate(-15deg); opacity: 1; }
-}
-@keyframes float1 {
-    0%, 100% { transform: translate(-25vw, -25vh) scale(1) rotate(-15deg); }
-    50% { transform: translate(-25vw, calc(-25vh - 30px)) scale(1) rotate(-8deg); }
-}
-
-.card-2 {
-    animation: deal2 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, float2 18s ease-in-out infinite 1.2s;
-}
-@keyframes deal2 {
-    from { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-    to { transform: translate(25vw, 25vh) scale(1) rotate(20deg); opacity: 1; }
-}
-@keyframes float2 {
-    0%, 100% { transform: translate(25vw, 25vh) scale(1) rotate(20deg); }
-    50% { transform: translate(25vw, calc(25vh - 30px)) scale(1) rotate(25deg); }
-}
-
-.card-3 {
-    width: 10vw; margin-left: -5vw; margin-top: -7vw;
-    animation: deal3 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, float3 20s ease-in-out infinite 1.4s;
-}
-@keyframes deal3 {
-    from { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-    to { transform: translate(30vw, -20vh) scale(1) rotate(10deg); opacity: 0.8; }
-}
-@keyframes float3 {
-    0%, 100% { transform: translate(30vw, -20vh) scale(1) rotate(10deg); }
-    50% { transform: translate(30vw, calc(-20vh - 25px)) scale(1) rotate(5deg); }
-}
-
-.card-4 {
-    width: 12vw; margin-left: -6vw; margin-top: -8.5vw;
-    animation: deal4 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, float4 16s ease-in-out infinite 1.6s;
-}
-@keyframes deal4 {
-    from { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-    to { transform: translate(-30vw, 20vh) scale(1) rotate(-25deg); opacity: 0.9; }
-}
-@keyframes float4 {
-    0%, 100% { transform: translate(-30vw, 20vh) scale(1) rotate(-25deg); }
-    50% { transform: translate(-30vw, calc(20vh + 30px)) scale(1) rotate(-15deg); }
+@keyframes floatRandom {
+    0%, 100% { 
+        transform: translate(calc(var(--tx) - 50vw), calc(var(--ty) - 50vh)) scale(var(--scale)) rotate(var(--rot)); 
+    }
+    50% { 
+        transform: translate(calc(var(--tx) - 50vw), calc(var(--ty) - 50vh - 30px)) scale(var(--scale)) rotate(calc(var(--rot) + 10deg)); 
+    }
 }
 
 .board-cell.highlight-valid {

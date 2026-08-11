@@ -1,17 +1,60 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import allCards from '../data/allCards';
 
 export default function HomePage() {
     const navigate = useNavigate();
+
+    // Generate 24 unique background cards dynamically
+    const backgroundCards = useMemo(() => {
+        const uniqueCards = [];
+        const seen = new Set();
+        for (let c of allCards) {
+            if (!seen.has(c.img) && !c.img.includes('corner')) {
+                uniqueCards.push(c);
+                seen.add(c.img);
+            }
+            if (uniqueCards.length >= 24) break;
+        }
+
+        return uniqueCards.map((card, i) => {
+            const isLeft = i % 2 === 0;
+            // Distribute primarily on left and right sides to keep center clear
+            const xPos = isLeft ? Math.random() * 25 : 75 + Math.random() * 25; 
+            const yPos = Math.random() * 100;
+            const delay = Math.random() * 1.5;
+            const duration = 12 + Math.random() * 10;
+            const rotation = -40 + Math.random() * 80;
+            const scale = 0.5 + Math.random() * 0.5;
+            
+            return {
+                card,
+                style: {
+                    '--tx': `${xPos}vw`,
+                    '--ty': `${yPos}vh`,
+                    '--rot': `${rotation}deg`,
+                    '--scale': scale,
+                    '--final-opacity': 0.4 + Math.random() * 0.4,
+                    animation: `dealSpread 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}s forwards, floatRandom ${duration}s ease-in-out infinite ${delay + 1.2}s`,
+                    opacity: 0,
+                }
+            };
+        });
+    }, []);
 
     return (
         <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
             {/* Animated Background Cards */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-                <img src="/cards/ace_of_spades.svg" className="floating-card card-1" alt="Ace of Spades" />
-                <img src="/cards/jack_of_diamonds.png" className="floating-card card-2" alt="Jack of Diamonds" />
-                <img src="/cards/queen_of_hearts.svg" className="floating-card card-3" alt="Queen of Hearts" />
-                <img src="/cards/king_of_clubs.svg" className="floating-card card-4" alt="King of Clubs" />
+                {backgroundCards.map((item, i) => (
+                    <img 
+                        key={i}
+                        src={item.card.img} 
+                        className="absolute top-1/2 left-1/2 -ml-[5vw] -mt-[7vw] rounded-lg shadow-2xl w-[10vw] min-w-[80px] max-w-[140px]" 
+                        style={item.style} 
+                        alt="Background Card" 
+                    />
+                ))}
             </div>
 
             <div className="container relative z-10 flex flex-col items-center justify-center pt-12 pb-24">

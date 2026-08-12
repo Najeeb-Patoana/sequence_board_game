@@ -21,29 +21,32 @@ const BG_CARDS = [
     '/cards/ace_of_diamonds.svg',
 ];
 
-/* Seeded spread of 20 cards with randomized positions */
+/* Seeded spread of 24 cards across left, right, top, bottom */
 function buildCards() {
     const positions = [
-        // left column  (x in vw from center, so negative = left)
-        { x: -42, y: -30 }, { x: -48, y:  5  }, { x: -38, y: 38  }, { x: -52, y: -8  },
-        { x: -44, y: 22  }, { x: -36, y: -45 },
-        // right column
-        { x:  42, y: -28 }, { x:  48, y:  8  }, { x:  38, y: 35  }, { x:  52, y: -10 },
-        { x:  44, y: 24  }, { x:  36, y: -42 },
-        // scattered across top / bottom
-        { x: -22, y: -48 }, { x:  18, y: -46 }, { x: -14, y:  46 }, { x:  20, y:  48 },
-        { x:  -4, y: -52 }, { x:   6, y:  52 }, { x: -30, y:  58 }, { x:  32, y: -55 },
+        // Left column — well into visible area
+        { x: -38, y: -32 }, { x: -44, y:  6  }, { x: -34, y: 36  }, { x: -48, y: -14 },
+        { x: -40, y: 24  }, { x: -30, y: -50 },
+        // Right column
+        { x:  38, y: -30 }, { x:  44, y:  8  }, { x:  34, y: 34  }, { x:  48, y: -12 },
+        { x:  40, y: 26  }, { x:  30, y: -48 },
+        // Top scatter — wider spread
+        { x: -18, y: -44 }, { x:  16, y: -42 }, { x: -28, y: -36 }, { x:  26, y: -38 },
+        // Bottom scatter
+        { x: -16, y:  46 }, { x:  18, y:  44 }, { x: -26, y:  40 }, { x:  24, y:  42 },
+        // Far outer
+        { x: -54, y:  2  }, { x:  54, y: -4  }, { x: -22, y:  58 }, { x:  20, y: -58 },
     ];
 
     return positions.map((pos, i) => {
-        const card = BG_CARDS[i % BG_CARDS.length];
-        const rot  = -28 + (i * 17 % 57);          // -28° to +28°
-        const spin = (i % 2 === 0 ? 1 : -1) * (3 + (i % 5) * 1.5); // small rotation drift
-        const dur  = 18 + (i % 7) * 3.5;           // 18s – 39s
-        const delay= -(i * 2.1) % dur;              // stagger so not all start same frame
-        const scale= 0.55 + (i % 5) * 0.07;        // 0.55 – 0.83
-        const opacity = 0.12 + (i % 4) * 0.04;     // 0.12 – 0.24
-        const drift = 28 + (i % 5) * 8;             // how far up they float (px)
+        const card  = BG_CARDS[i % BG_CARDS.length];
+        const rot   = -35 + (i * 19 % 70);
+        const spin  = (i % 2 === 0 ? 1 : -1) * (4 + (i % 4) * 2.5);
+        const dur   = 20 + (i % 6) * 4;
+        const delay = -(i * 2.3) % dur;
+        const scale = 0.7 + (i % 4) * 0.1;           // 0.7 – 1.0  (larger)
+        const opacity = 0.22 + (i % 5) * 0.04;        // 0.22 – 0.38 (more visible)
+        const drift = 32 + (i % 5) * 10;
 
         return { card, pos, rot, spin, dur, delay, scale, opacity, drift };
     });
@@ -138,7 +141,7 @@ export default function HomePage() {
                         aria-hidden="true"
                         className="hp-bg-card"
                         style={{
-                            width: '90px',
+                            width: '130px',
                             height: 'auto',
                             '--card-x': `${item.pos.x}vw`,
                             '--card-y': `${item.pos.y}vh`,

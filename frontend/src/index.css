@@ -275,6 +275,9 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   height: 100%;
   max-height: 100%;
   max-width: 100%;
+  /* Prevents wrapper from collapsing when flex parent has no height */
+  min-height: 0;
+  min-width: 0;
 }
 
 .board-grid {
@@ -282,21 +285,22 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   gap: 1.5px;
-  background: #000;
-  border: 1.5px solid rgba(255,255,255,0.08);
+  background: #1a1008;
+  border: 2px solid rgba(201,168,76,0.18);
   border-radius: var(--r-sm);
   overflow: hidden;
   width: 100%;
   height: 100%;
-  /* Warm felt-table shadow */
   box-shadow:
-    0 0 0 1px rgba(0,0,0,0.8),
-    0 12px 40px rgba(0,0,0,0.8);
+    0 0 0 1px rgba(0,0,0,0.9),
+    0 16px 48px rgba(0,0,0,0.85),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
 }
 
 .board-cell {
   position: relative;
-  background: #f5f0e8;   /* warm off-white — card face */
+  /* Warm ivory card-face background — shows behind transparent SVG edges */
+  background: #faf6ef;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -304,11 +308,13 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
 }
 
 .board-cell img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  /* contain = entire card face always visible, never cropped */
+  width: 96%;
+  height: 96%;
+  object-fit: contain;
   pointer-events: none;
   display: block;
+  border-radius: 1px;
 }
 
 /* Corner cells — felt green */
@@ -347,54 +353,91 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
 .board-cell.can-click { cursor: pointer; }
 
 /* ============================================================
-   CHIPS  — sized to sit cleanly inside the card image
+   CHIPS  — poker-chip look with ridge ring + texture
    ============================================================ */
 
 .chip {
   position: absolute;
-  /* 60% keeps the chip visibly smaller than the card art */
-  width: 62%;
-  height: 62%;
+  width: 64%;
+  height: 64%;
   border-radius: 50%;
   z-index: 4;
   pointer-events: none;
-  animation: chipPop 0.3s var(--ease-spring) forwards;
+  animation: chipPop 0.32s var(--ease-spring) forwards;
   transform: scale(0);
+  /* Crosshatch texture via SVG data URI */
+  --chip-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0 0L8 8M8 0L0 8' stroke='rgba(255,255,255,0.07)' stroke-width='0.6'/%3E%3C/svg%3E");
 }
 
-/* Gloss highlight */
+/* ── Outer ridge ring (inset border trick) ── */
+.chip::before {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.18);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ── Gloss arc (top-left light catch) ── */
 .chip::after {
   content: '';
   position: absolute;
-  top: 10%;
-  left: 16%;
-  width: 32%;
-  height: 24%;
-  background: rgba(255,255,255,0.45);
+  top: 8%;
+  left: 14%;
+  width: 36%;
+  height: 22%;
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(255,255,255,0.0) 100%
+  );
   border-radius: 50%;
-  filter: blur(1.5px);
+  filter: blur(1px);
+  z-index: 3;
 }
 
 @keyframes chipPop {
-  0%   { transform: scale(0) rotate(-8deg); opacity: 0; }
-  65%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+  60%  { transform: scale(1.1) rotate(3deg);  opacity: 1; }
+  100% { transform: scale(1)   rotate(0deg);  opacity: 1; }
 }
 
+/* Blue chip — royal navy with edge highlight */
 .chip.blue {
-  background: radial-gradient(circle at 38% 32%, #8bb8e8 0%, #2255a4 80%);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.2);
-  border: 1.5px solid rgba(100,160,220,0.35);
+  background:
+    var(--chip-texture),
+    radial-gradient(circle at 40% 35%, #7ab0e0 0%, #1a4690 55%, #0d2d6b 100%);
+  box-shadow:
+    0 0 0 3px #1e3f80,
+    0 0 0 4.5px rgba(122,176,224,0.4),
+    0 3px 10px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.25);
 }
+
+/* Red chip — deep crimson with warm edge */
 .chip.red {
-  background: radial-gradient(circle at 38% 32%, #e88b8b 0%, #a42222 80%);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.2);
-  border: 1.5px solid rgba(220,100,100,0.35);
+  background:
+    var(--chip-texture),
+    radial-gradient(circle at 40% 35%, #e08080 0%, #8c1a1a 55%, #5e0d0d 100%);
+  box-shadow:
+    0 0 0 3px #7a1818,
+    0 0 0 4.5px rgba(224,128,128,0.4),
+    0 3px 10px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.25);
 }
+
+/* Green chip — forest with gold-tint edge */
 .chip.green {
-  background: radial-gradient(circle at 38% 32%, #8be8b0 0%, #226640 80%);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.2);
-  border: 1.5px solid rgba(100,220,140,0.35);
+  background:
+    var(--chip-texture),
+    radial-gradient(circle at 40% 35%, #70d898 0%, #1a6b3c 55%, #0d4224 100%);
+  box-shadow:
+    0 0 0 3px #185e32,
+    0 0 0 4.5px rgba(112,216,152,0.4),
+    0 3px 10px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
 /* ============================================================
@@ -680,4 +723,42 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   0%   { transform: scale(0); }
   60%  { transform: scale(1.15); }
   100% { transform: scale(1); }
+}
+
+/* ============================================================
+   HOMEPAGE — background card animations
+   ============================================================ */
+
+@keyframes cardDrift {
+  0% {
+    transform:
+      translateX(var(--card-x))
+      translateY(var(--card-y))
+      rotate(var(--card-rot))
+      scale(var(--card-scale));
+    opacity: 0;
+  }
+  12% { opacity: var(--card-opacity); }
+  88% { opacity: var(--card-opacity); }
+  100% {
+    transform:
+      translateX(var(--card-x))
+      translateY(calc(var(--card-y) - var(--card-drift)))
+      rotate(calc(var(--card-rot) + var(--card-spin)))
+      scale(var(--card-scale));
+    opacity: 0;
+  }
+}
+
+.hp-bg-card {
+  position: absolute;
+  border-radius: 6px;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: cardDrift var(--card-dur) ease-in-out var(--card-delay) infinite;
+  opacity: 0;
+  /* Warm sepia tint */
+  filter: sepia(0.25) brightness(0.55) saturate(0.8);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  background: #fff;
 }

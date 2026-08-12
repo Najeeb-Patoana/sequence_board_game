@@ -1,77 +1,163 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const PLAYER_COLORS = {
+    1: { label: 'Blue Team', color: '#60a5fa', accent: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.35)' },
+    2: { label: 'Red Team',  color: '#f87171', accent: 'rgba(232,64,64,0.15)',  border: 'rgba(232,64,64,0.35)' },
+    3: { label: 'Green Team',color: '#4ade80', accent: 'rgba(34,197,94,0.15)',  border: 'rgba(34,197,94,0.35)' },
+};
+
 export default function OfflineSetup() {
     const navigate = useNavigate();
-    const [p1Name, setP1Name] = useState('Player 1');
-    const [p2Name, setP2Name] = useState('Player 2');
-    const [p3Name, setP3Name] = useState('Player 3');
+    const [p1Name, setP1Name] = useState('');
+    const [p2Name, setP2Name] = useState('');
+    const [p3Name, setP3Name] = useState('');
     const [numPlayers, setNumPlayers] = useState(2);
     const [sequencesToWin, setSequencesToWin] = useState(2);
 
     const handleStart = (e) => {
         e.preventDefault();
-        if (p1Name.trim() && p2Name.trim() && (numPlayers === 2 || p3Name.trim())) {
-            navigate('/offline/game', { 
-                state: { 
-                    p1Name: p1Name.trim(), 
-                    p2Name: p2Name.trim(),
-                    p3Name: numPlayers === 3 ? p3Name.trim() : null,
-                    sequencesToWin
-                } 
+        const name1 = p1Name.trim() || 'Player 1';
+        const name2 = p2Name.trim() || 'Player 2';
+        const name3 = p3Name.trim() || 'Player 3';
+
+        if (name1 && name2 && (numPlayers === 2 || name3)) {
+            navigate('/offline/game', {
+                state: {
+                    p1Name: name1,
+                    p2Name: name2,
+                    p3Name: numPlayers === 3 ? name3 : null,
+                    sequencesToWin,
+                },
             });
         }
     };
 
     return (
-        <div className="container max-w-lg mx-auto mt-12 flex flex-col items-center">
-            <button className="btn btn-secondary flex items-center gap-2 self-start py-2 px-4 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors border border-white/10 mb-8" onClick={() => navigate('/')}>
-                ← Back to Menu
-            </button>
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+            background: 'var(--bg-base)',
+        }}>
+            <div style={{ width: '100%', maxWidth: '440px' }}>
+                {/* Back */}
+                <button
+                    className="btn btn-ghost"
+                    style={{ marginBottom: '1.5rem', fontSize: '0.82rem' }}
+                    onClick={() => navigate('/')}
+                >
+                    ← Back
+                </button>
 
-            <div className="glass-card p-8 w-full">
-                <h2 className="text-3xl mb-8 text-center text-gradient">Local Game Setup</h2>
-                
-                <form onSubmit={handleStart} className="flex flex-col gap-6">
-                    <div className="grid grid-cols-2 gap-4 mb-2">
-                        <div>
-                            <label className="block text-sm text-muted mb-2">Players</label>
-                            <select className="input w-full" value={numPlayers} onChange={(e) => setNumPlayers(Number(e.target.value))}>
-                                <option value={2}>2 Players</option>
-                                <option value={3}>3 Players</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm text-muted mb-2">Sequences to Win</label>
-                            <select className="input w-full" value={sequencesToWin} onChange={(e) => setSequencesToWin(Number(e.target.value))}>
-                                <option value={1}>1 Sequence</option>
-                                <option value={2}>2 Sequences</option>
-                                <option value={3}>3 Sequences</option>
-                            </select>
-                        </div>
+                <div className="glass-card" style={{ padding: '2rem' }}>
+                    {/* Title */}
+                    <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                        <h1 style={{
+                            fontFamily: 'var(--font-heading)',
+                            fontSize: '1.75rem',
+                            fontWeight: 900,
+                            color: 'var(--text-primary)',
+                            marginBottom: '0.35rem',
+                        }}>
+                            Local Game
+                        </h1>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                            Set up your pass-and-play session
+                        </p>
                     </div>
 
-                    <div>
-                        <label className="block text-sm text-[#60a5fa] mb-2 font-bold">Player 1 (Blue Team)</label>
-                        <input type="text" className="input border-[#3b82f6]/50 focus:border-[#3b82f6]" value={p1Name} onChange={(e) => setP1Name(e.target.value)} maxLength={15} required />
-                    </div>
-                    
-                    <div>
-                        <label className="block text-sm text-[#f87171] mb-2 font-bold">Player 2 (Red Team)</label>
-                        <input type="text" className="input border-[#ef4444]/50 focus:border-[#ef4444]" value={p2Name} onChange={(e) => setP2Name(e.target.value)} maxLength={15} required />
-                    </div>
-                    
-                    {numPlayers === 3 && (
-                        <div>
-                            <label className="block text-sm text-[#10b981] mb-2 font-bold">Player 3 (Green Team)</label>
-                            <input type="text" className="input border-[#10b981]/50 focus:border-[#10b981]" value={p3Name} onChange={(e) => setP3Name(e.target.value)} maxLength={15} required />
+                    <form onSubmit={handleStart} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+                        {/* Game settings row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
+                                    Players
+                                </label>
+                                <select
+                                    className="input"
+                                    value={numPlayers}
+                                    onChange={(e) => setNumPlayers(Number(e.target.value))}
+                                >
+                                    <option value={2}>2 Players</option>
+                                    <option value={3}>3 Players</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
+                                    Sequences to Win
+                                </label>
+                                <select
+                                    className="input"
+                                    value={sequencesToWin}
+                                    onChange={(e) => setSequencesToWin(Number(e.target.value))}
+                                >
+                                    <option value={1}>1</option>
+                                    <option value={2}>2</option>
+                                    <option value={3}>3</option>
+                                </select>
+                            </div>
                         </div>
-                    )}
-                    
-                    <button type="submit" className="btn btn-primary mt-4" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)' }}>
-                        Start Local Game
-                    </button>
-                </form>
+
+                        {/* Divider */}
+                        <div className="divider" />
+
+                        {/* Player fields */}
+                        {[1, 2, ...(numPlayers === 3 ? [3] : [])].map((n) => {
+                            const cfg = PLAYER_COLORS[n];
+                            const value = n === 1 ? p1Name : n === 2 ? p2Name : p3Name;
+                            const setter = n === 1 ? setP1Name : n === 2 ? setP2Name : setP3Name;
+                            const placeholder = `Player ${n}`;
+
+                            return (
+                                <div key={n}>
+                                    <label style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.4rem',
+                                        fontSize: '0.78rem',
+                                        fontWeight: 700,
+                                        color: cfg.color,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.08em',
+                                        marginBottom: '0.4rem',
+                                    }}>
+                                        <span style={{
+                                            width: '8px', height: '8px',
+                                            borderRadius: '50%',
+                                            background: cfg.color,
+                                            display: 'inline-block',
+                                        }} />
+                                        Player {n} — {cfg.label}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        style={{
+                                            borderColor: cfg.border,
+                                            background: cfg.accent,
+                                        }}
+                                        placeholder={placeholder}
+                                        value={value}
+                                        onChange={(e) => setter(e.target.value)}
+                                        maxLength={15}
+                                    />
+                                </div>
+                            );
+                        })}
+
+                        <button
+                            type="submit"
+                            className="btn btn-success btn-lg w-full"
+                            style={{ marginTop: '0.5rem' }}
+                        >
+                            Start Game →
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );

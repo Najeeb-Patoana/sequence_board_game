@@ -220,13 +220,17 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.2; }
 select.input option { background: var(--bg-elevated); color: var(--text-primary); }
 
 /* ============================================================
-   GAME LAYOUT — sidebar | board+hand
+   GAME LAYOUT — 3 columns: info | board | hand
    ============================================================ */
 
 .game-layout {
   display: grid;
-  /* Narrow sidebar → maximise board space */
-  grid-template-columns: 196px 1fr;
+  /*
+   * Left  = info sidebar (196px)
+   * Mid   = board fills remaining space (1fr)
+   * Right = player hand column (168px)
+   */
+  grid-template-columns: 196px 1fr 168px;
   height: 100vh;
   overflow: hidden;
   background: var(--bg-base);
@@ -249,16 +253,140 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  /* Subtle board-room background */
+  min-width: 0;
+  /* Subtle warm board-table background */
   background:
-    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(26,16,8,0.6) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(26,16,8,0.55) 0%, transparent 75%),
     var(--bg-base);
 }
 
-@media (max-width: 900px) {
-  .game-layout { grid-template-columns: 1fr; height: auto; overflow: auto; }
-  .game-sidebar { flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border-faint); }
+/* ── Right-side hand column ─────────────────────────────── */
+.hand-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 0.75rem 0.5rem 0.75rem;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-faint);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+/* Label above the hand */
+.hand-sidebar-hint {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.6rem;
+  line-height: 1;
+}
+.hand-sidebar-hint.active {
+  color: var(--gold);
+  animation: hintPulse 2s ease-in-out infinite;
+}
+
+/* Vertical stack of cards */
+.hand-cards-v {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: -18px; /* slight overlap so 7 cards fit comfortably */
+}
+
+/* Individual card in vertical hand */
+.hand-card-v {
+  width: 82px;
+  height: 114px;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+  /* Slide right on hover */
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.18s ease;
+  transform-origin: left center;
+}
+.hand-card-v img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 5px;
+  display: block;
+  pointer-events: none;
+}
+.hand-card-v:hover {
+  transform: translateX(12px) scale(1.06);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  z-index: 10;
+}
+.hand-card-v.selected {
+  transform: translateX(18px) scale(1.08);
+  box-shadow: 3px 0 0 2.5px var(--gold), 0 10px 24px rgba(0,0,0,0.55);
+  z-index: 20;
+}
+/* Gold check badge */
+.hand-card-v.selected::after {
+  content: '✓';
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  background: var(--gold);
+  color: #0d0d0d;
+  font-size: 8px;
+  font-weight: 900;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+@media (max-width: 1000px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: auto;
+  }
+  .game-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid var(--border-faint);
+  }
   .game-main { min-height: 100vw; }
+  .hand-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-left: none;
+    border-top: 1px solid var(--border-faint);
+    padding: 0.5rem;
+  }
+  .hand-cards-v {
+    flex-direction: row;
+    gap: -12px;
+  }
+  .hand-card-v {
+    width: 54px;
+    height: 76px;
+    transform-origin: bottom center;
+  }
+  .hand-card-v:hover {
+    transform: translateY(-12px) scale(1.06);
+  }
+  .hand-card-v.selected {
+    transform: translateY(-18px) scale(1.08);
+    box-shadow: 0 -3px 0 2.5px var(--gold), 0 10px 24px rgba(0,0,0,0.55);
+  }
 }
 
 /* ============================================================
@@ -270,17 +398,19 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Minimal padding so board uses all available space */
-  padding: 0.4rem 0.6rem 0.3rem;
+  padding: 0.5rem;
   min-height: 0;
+  min-width: 0;
 }
 
-/* Square board — fills as much of the flex column as possible */
+/*
+ * Square board — ONLY constrain by height; let aspect-ratio
+ * calculate the width automatically.  Never set width: 100%
+ * or the board will stretch to fill the full center column.
+ */
 .board-wrapper {
   aspect-ratio: 1 / 1;
-  /* Take the smaller of 100% width or 100% height */
   height: 100%;
-  width: 100%;
   max-height: 100%;
   max-width: 100%;
   min-height: 0;

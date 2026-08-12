@@ -47,7 +47,9 @@ export default function GameBoard({ cards, hoveredCards = [], selectedBoardId, h
                         )}
 
                         {hasChip && chipColor && (
-                            <div className={`chip ${chipColor}`} />
+                            <div className={`chip ${chipColor}`}>
+                                <div className="chip-center" />
+                            </div>
                         )}
                     </div>
                 );

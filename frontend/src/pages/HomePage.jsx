@@ -1,64 +1,13 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-/* ── Card images to use as background decoration ──────────── */
-const BG_CARDS = [
-    '/cards/king_of_spades.svg',
-    '/cards/queen_of_hearts.svg',
-    '/cards/jack_of_clubs.svg',
-    '/cards/ace_of_spades.svg',
-    '/cards/king_of_hearts.svg',
-    '/cards/queen_of_spades.svg',
-    '/cards/jack_of_diamonds.svg',
-    '/cards/ace_of_hearts.svg',
-    '/cards/king_of_clubs.svg',
-    '/cards/queen_of_clubs.svg',
-    '/cards/jack_of_hearts.svg',
-    '/cards/ace_of_clubs.svg',
-    '/cards/king_of_diamonds.svg',
-    '/cards/queen_of_diamonds.svg',
-    '/cards/jack_of_spades.svg',
-    '/cards/ace_of_diamonds.svg',
-];
-
-/* Seeded spread of 24 cards across left, right, top, bottom */
-function buildCards() {
-    const positions = [
-        // Left column — well into visible area
-        { x: -38, y: -32 }, { x: -44, y:  6  }, { x: -34, y: 36  }, { x: -48, y: -14 },
-        { x: -40, y: 24  }, { x: -30, y: -50 },
-        // Right column
-        { x:  38, y: -30 }, { x:  44, y:  8  }, { x:  34, y: 34  }, { x:  48, y: -12 },
-        { x:  40, y: 26  }, { x:  30, y: -48 },
-        // Top scatter — wider spread
-        { x: -18, y: -44 }, { x:  16, y: -42 }, { x: -28, y: -36 }, { x:  26, y: -38 },
-        // Bottom scatter
-        { x: -16, y:  46 }, { x:  18, y:  44 }, { x: -26, y:  40 }, { x:  24, y:  42 },
-        // Far outer
-        { x: -54, y:  2  }, { x:  54, y: -4  }, { x: -22, y:  58 }, { x:  20, y: -58 },
-    ];
-
-    return positions.map((pos, i) => {
-        const card  = BG_CARDS[i % BG_CARDS.length];
-        const rot   = -35 + (i * 19 % 70);
-        const spin  = (i % 2 === 0 ? 1 : -1) * (4 + (i % 4) * 2.5);
-        const dur   = 20 + (i % 6) * 4;
-        const delay = -(i * 2.3) % dur;
-        const scale = 0.7 + (i % 4) * 0.1;           // 0.7 – 1.0  (larger)
-        const opacity = 0.22 + (i % 5) * 0.04;        // 0.22 – 0.38 (more visible)
-        const drift = 32 + (i % 5) * 10;
-
-        return { card, pos, rot, spin, dur, delay, scale, opacity, drift };
-    });
-}
+import CardBackground from '../components/CardBackground';
 
 const MODES = [
     {
         key: 'online', route: '/online',
         label: 'Online', sub: 'Multiplayer',
         desc: 'Host or join a private room and play with friends anywhere in the world.',
-        cta: 'Play Online',
-        delay: 0,
+        cta: 'Play Online', delay: 0,
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/>
@@ -71,8 +20,7 @@ const MODES = [
         key: 'local', route: '/offline',
         label: 'Local', sub: 'Pass & Play',
         desc: 'Share a single screen. Pass the device between turns — perfect for game nights.',
-        cta: 'Play Local',
-        delay: 90,
+        cta: 'Play Local', delay: 90,
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="3" width="20" height="14" rx="2"/>
@@ -85,8 +33,7 @@ const MODES = [
         key: 'cpu', route: '/cpu',
         label: 'Versus', sub: 'Computer',
         desc: 'Test your strategy against a heuristic AI engine and sharpen your skills.',
-        cta: 'Play vs AI',
-        delay: 180,
+        cta: 'Play vs AI', delay: 180,
         icon: (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="4" y="4" width="16" height="16" rx="2"/>
@@ -103,7 +50,6 @@ const MODES = [
 export default function HomePage() {
     const navigate = useNavigate();
     const [ready, setReady] = useState(false);
-    const bgCards = useMemo(() => buildCards(), []);
 
     useEffect(() => {
         const t = setTimeout(() => setReady(true), 60);
@@ -122,70 +68,10 @@ export default function HomePage() {
             overflow: 'hidden',
             fontFamily: "'Inter', system-ui, sans-serif",
         }}>
+            {/* Shared animated card background */}
+            <CardBackground />
 
-            {/* ── Floating card background ──────────────── */}
-            <div style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pointerEvents: 'none',
-                overflow: 'hidden',
-            }}>
-                {bgCards.map((item, i) => (
-                    <img
-                        key={i}
-                        src={item.card}
-                        alt=""
-                        aria-hidden="true"
-                        className="hp-bg-card"
-                        style={{
-                            width: '130px',
-                            height: 'auto',
-                            '--card-x': `${item.pos.x}vw`,
-                            '--card-y': `${item.pos.y}vh`,
-                            '--card-rot': `${item.rot}deg`,
-                            '--card-spin': `${item.spin}deg`,
-                            '--card-scale': item.scale,
-                            '--card-opacity': item.opacity,
-                            '--card-dur': `${item.dur}s`,
-                            '--card-delay': `${item.delay}s`,
-                            '--card-drift': `${item.drift}px`,
-                        }}
-                    />
-                ))}
-            </div>
-
-            {/* ── Ambient glow on top of cards ─────────── */}
-            <div style={{
-                position: 'absolute',
-                inset: 0,
-                background:
-                    'radial-gradient(ellipse 55% 45% at 50% 0%,   rgba(201,168,76,0.10) 0%, transparent 70%),' +
-                    'radial-gradient(ellipse 70% 70% at 50% 50%,  rgba(13,13,13,0.55) 0%, transparent 80%)',
-                pointerEvents: 'none',
-            }} />
-
-            {/* ── Grain texture ─────────────────────────── */}
-            <div style={{
-                position: 'absolute',
-                inset: 0,
-                opacity: 0.022,
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                pointerEvents: 'none',
-                mixBlendMode: 'overlay',
-            }} />
-
-            {/* ── Top gold rule ─────────────────────────── */}
-            <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0,
-                height: '1px',
-                background: 'linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.5) 50%, transparent 100%)',
-            }} />
-
-            {/* ── MAIN CONTENT ──────────────────────────── */}
+            {/* ── MAIN CONTENT (above background) ─── */}
             <div style={{
                 position: 'relative',
                 zIndex: 10,
@@ -196,8 +82,7 @@ export default function HomePage() {
                 flexDirection: 'column',
                 alignItems: 'center',
             }}>
-
-                {/* ── Hero text ──────────────────────────── */}
+                {/* Hero text */}
                 <div style={{
                     textAlign: 'center',
                     marginBottom: 'clamp(2.5rem, 5vh, 4rem)',
@@ -206,32 +91,21 @@ export default function HomePage() {
                     transition: 'opacity 0.75s ease, transform 0.75s ease',
                 }}>
                     <p style={{
-                        fontSize: '0.68rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.32em',
-                        textTransform: 'uppercase',
-                        color: 'rgba(201,168,76,0.65)',
-                        marginBottom: '1rem',
+                        fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.32em',
+                        textTransform: 'uppercase', color: 'rgba(201,168,76,0.65)', marginBottom: '1rem',
                     }}>
                         The Classic Strategy Card Game
                     </p>
-
                     <h1 style={{
                         fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: 'clamp(3.5rem, 11vw, 8.5rem)',
-                        fontWeight: 900,
-                        lineHeight: 0.93,
-                        letterSpacing: '-0.025em',
+                        fontSize: 'clamp(3.5rem, 11vw, 8.5rem)', fontWeight: 900,
+                        lineHeight: 0.93, letterSpacing: '-0.025em',
                         backgroundImage: 'linear-gradient(175deg, #ffffff 0%, #e8e0cc 40%, #9a9080 100%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                         marginBottom: '1.5rem',
-                        textShadow: 'none',
                     }}>
                         SEQUENCE
                     </h1>
-
                     {/* Ornamental divider */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', justifyContent: 'center' }}>
                         <div style={{ width: '50px', height: '1px', background: 'rgba(201,168,76,0.35)' }} />
@@ -242,12 +116,11 @@ export default function HomePage() {
                     </div>
                 </div>
 
-                {/* ── Mode cards grid ─────────────────────── */}
+                {/* Mode cards grid */}
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(255px, 1fr))',
                     width: '100%',
-                    /* Single dark surface with internal dividers */
                     background: '#111',
                     border: '1px solid rgba(255,255,255,0.07)',
                     borderRadius: '16px',
@@ -265,14 +138,10 @@ export default function HomePage() {
                     ))}
                 </div>
 
-                {/* ── Footer ──────────────────────────────── */}
                 <p style={{
-                    marginTop: '2.25rem',
-                    fontSize: '0.68rem',
-                    color: 'rgba(255,255,255,0.16)',
-                    letterSpacing: '0.08em',
-                    textAlign: 'center',
-                    opacity: ready ? 1 : 0,
+                    marginTop: '2.25rem', fontSize: '0.68rem',
+                    color: 'rgba(255,255,255,0.16)', letterSpacing: '0.08em',
+                    textAlign: 'center', opacity: ready ? 1 : 0,
                     transition: 'opacity 1.1s ease 0.5s',
                 }}>
                     2–3 PLAYERS  ·  STRATEGY  ·  CARD PLACEMENT
@@ -282,14 +151,11 @@ export default function HomePage() {
     );
 }
 
-/* ── Individual mode card ──────────────────────────────────── */
 function ModeCard({ mode, ready, isLast, onClick }) {
     const [hovered, setHovered] = useState(false);
-
     return (
         <div
-            role="button"
-            tabIndex={0}
+            role="button" tabIndex={0}
             onClick={onClick}
             onKeyDown={(e) => e.key === 'Enter' && onClick()}
             onMouseEnter={() => setHovered(true)}
@@ -297,16 +163,12 @@ function ModeCard({ mode, ready, isLast, onClick }) {
             style={{
                 position: 'relative',
                 background: hovered ? '#181818' : 'transparent',
-                /* Right border as internal divider — skip on last */
                 borderRight: isLast ? 'none' : '1px solid rgba(255,255,255,0.06)',
                 padding: '2rem 1.75rem',
                 cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
+                display: 'flex', flexDirection: 'column',
                 transition: 'background 0.18s ease',
-                userSelect: 'none',
-                outline: 'none',
-                overflow: 'hidden',
+                userSelect: 'none', outline: 'none', overflow: 'hidden',
                 opacity: ready ? 1 : 0,
                 transform: ready ? 'none' : 'translateY(10px)',
                 transitionProperty: 'background, opacity, transform',
@@ -314,77 +176,37 @@ function ModeCard({ mode, ready, isLast, onClick }) {
                 transitionDelay: `0s, ${mode.delay}ms, ${mode.delay}ms`,
             }}
         >
-            {/* Hover top-edge gold accent line */}
+            {/* Hover top-edge gold line */}
             <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0,
-                height: '2px',
+                position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
                 background: 'linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.7) 50%, transparent 100%)',
-                opacity: hovered ? 1 : 0,
-                transition: 'opacity 0.22s ease',
+                opacity: hovered ? 1 : 0, transition: 'opacity 0.22s ease',
             }} />
 
-            {/* Icon */}
-            <div style={{
-                color: hovered ? '#c9a84c' : 'rgba(255,255,255,0.28)',
-                marginBottom: '1.25rem',
-                transition: 'color 0.18s ease',
-            }}>
+            <div style={{ color: hovered ? '#c9a84c' : 'rgba(255,255,255,0.28)', marginBottom: '1.25rem', transition: 'color 0.18s ease' }}>
                 {mode.icon}
             </div>
 
-            {/* Title */}
             <div style={{ marginBottom: '0.65rem' }}>
-                <span style={{
-                    display: 'block',
-                    fontFamily: "'Playfair Display', Georgia, serif",
-                    fontSize: '1.15rem',
-                    fontWeight: 800,
-                    color: '#ede8dc',
-                    letterSpacing: '-0.01em',
-                    lineHeight: 1,
-                    marginBottom: '4px',
-                }}>
+                <span style={{ display: 'block', fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.15rem', fontWeight: 800, color: '#ede8dc', letterSpacing: '-0.01em', lineHeight: 1, marginBottom: '4px' }}>
                     {mode.label}
                 </span>
-                <span style={{
-                    fontSize: '0.7rem',
-                    fontWeight: 600,
-                    color: 'rgba(255,255,255,0.3)',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                     {mode.sub}
                 </span>
             </div>
 
-            {/* Description */}
-            <p style={{
-                fontSize: '0.8rem',
-                color: 'rgba(255,255,255,0.35)',
-                lineHeight: 1.65,
-                marginBottom: '1.75rem',
-                flexGrow: 1,
-            }}>
+            <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.65, marginBottom: '1.75rem', flexGrow: 1 }}>
                 {mode.desc}
             </p>
 
-            {/* CTA row */}
             <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 paddingTop: '0.875rem',
                 borderTop: `1px solid ${hovered ? 'rgba(201,168,76,0.22)' : 'rgba(255,255,255,0.06)'}`,
                 transition: 'border-color 0.18s ease',
             }}>
-                <span style={{
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    color: hovered ? '#c9a84c' : 'rgba(255,255,255,0.35)',
-                    transition: 'color 0.18s ease',
-                    letterSpacing: '0.02em',
-                }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: hovered ? '#c9a84c' : 'rgba(255,255,255,0.35)', transition: 'color 0.18s ease', letterSpacing: '0.02em' }}>
                     {mode.cta}
                 </span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"

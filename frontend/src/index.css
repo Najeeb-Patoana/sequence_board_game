@@ -454,31 +454,34 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   border-radius: 1px;
 }
 
-/* Corner cells — FREE space with ornamental frame */
+/* Corner cells — match the card face style so they don't stand out */
 .board-cell.corner {
-  background: radial-gradient(circle at 50% 50%, #2a4a30 0%, #1a3020 100%);
+  /* Same ivory background as all other card cells */
+  background: #faf6ef;
   cursor: default;
-  border: none;
 }
-/* Outer decorative ring */
+
+/* Inner card-frame border — like the decorative border on playing cards */
 .board-cell.corner::before {
   content: '';
   position: absolute;
-  inset: 8%;
-  border-radius: 50%;
-  border: 1.5px solid rgba(201,168,76,0.4);
+  inset: 6%;
+  border: 1.5px solid rgba(160, 40, 40, 0.22);
+  border-radius: 1px;
   z-index: 1;
+  pointer-events: none;
 }
-/* Inner gold diamond */
+
+/* Center suit symbol — classic playing-card red */
 .board-cell.corner::after {
-  content: '';
+  content: '♥';
   position: absolute;
-  width: 30%;
-  height: 30%;
-  background: rgba(201,168,76,0.7);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  font-size: clamp(0.7rem, 2vw, 1.4rem);
+  color: #b91c1c;
   z-index: 2;
-  box-shadow: 0 0 8px rgba(201,168,76,0.5);
+  line-height: 1;
+  /* Subtle text-shadow for depth, like ink on card paper */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.12);
 }
 
 /* Valid placement highlight */

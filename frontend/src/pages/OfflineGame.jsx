@@ -4,8 +4,6 @@ import { useOfflineGame } from '../hooks/useOfflineGame';
 import GameBoard from '../components/GameBoard';
 import PlayerHand from '../components/PlayerHand';
 import GameInfoPanel from '../components/GameInfoPanel';
-import TurnIndicator from '../components/TurnIndicator';
-import DeckDisplay from '../components/DeckDisplay';
 import PassDeviceScreen from '../components/PassDeviceScreen';
 import WinnerModal from '../components/WinnerModal';
 
@@ -14,6 +12,7 @@ export default function OfflineGame() {
     const navigate = useNavigate();
     
     const [hoveredMatches, setHoveredMatches] = useState([]);
+    // selectedHandCard now stores the full card object (or null)
     const [selectedHandCard, setSelectedHandCard] = useState(null);
 
     const {
@@ -26,19 +25,21 @@ export default function OfflineGame() {
         quitGame
     } = useOfflineGame();
 
+    // Store setup params for Play Again
+    const setupParams = location.state;
+
     useEffect(() => {
-        if (location.state?.p1Name && location.state?.p2Name) {
+        if (setupParams?.p1Name && setupParams?.p2Name) {
             startLocalGame(
-                location.state.p1Name, 
-                location.state.p2Name, 
-                location.state.p3Name, 
-                location.state.sequencesToWin
+                setupParams.p1Name,
+                setupParams.p2Name,
+                setupParams.p3Name,
+                setupParams.sequencesToWin
             );
         } else {
-            // No state passed, redirect to setup
             navigate('/offline');
         }
-    }, [location, startLocalGame, navigate]);
+    }, []);  // run once on mount
 
     const handleQuit = () => {
         quitGame();
@@ -46,13 +47,32 @@ export default function OfflineGame() {
     };
 
     const handleBoardClick = (cardId) => {
-        if (selectedHandCard) {
-            const success = makeMove(cardId, selectedHandCard.id);
-            if (success) {
-                setSelectedHandCard(null);
-                setHoveredMatches([]);
-            }
+        if (!selectedHandCard) return;
+        // selectedHandCard is the full card object; pass its id to makeMove
+        const success = makeMove(cardId, selectedHandCard.id);
+        if (success) {
+            setSelectedHandCard(null);
+            setHoveredMatches([]);
         }
+    };
+
+    const handleCardSelect = (card) => {
+        setSelectedHandCard(card);
+        // When deselecting, clear hover highlights too
+        if (!card) setHoveredMatches([]);
+    };
+
+    const handlePlayAgain = () => {
+        if (setupParams) {
+            startLocalGame(
+                setupParams.p1Name,
+                setupParams.p2Name,
+                setupParams.p3Name,
+                setupParams.sequencesToWin
+            );
+        }
+        setSelectedHandCard(null);
+        setHoveredMatches([]);
     };
 
     if (!gameState) return null;
@@ -61,63 +81,66 @@ export default function OfflineGame() {
     const currentPlayerObj = gameState.players[currentTurn];
     
     return (
-        <div className="game-layout relative">
+        <div className="game-layout">
             {/* Left Sidebar */}
-            <div className="flex flex-col gap-6 h-full">
-                <button className="btn btn-secondary flex items-center gap-2 self-start py-2 px-4 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors border border-white/10" onClick={handleQuit}>
-                    ← Back to Menu
+            <aside className="game-sidebar">
+                <button
+                    className="btn btn-ghost"
+                    onClick={handleQuit}
+                    style={{ fontSize: '0.82rem' }}
+                >
+                    ← Menu
                 </button>
-                
-                <GameInfoPanel 
-                    scores={gameState.scores} 
-                    deckCount={gameState.shuffledDeck ? gameState.shuffledDeck.length : 0} 
-                    players={gameState.players} 
-                    playingAs={null} 
+
+                <GameInfoPanel
+                    scores={gameState.scores}
+                    players={gameState.players}
+                    currentTurn={currentTurn}
+                    deckCount={gameState.shuffledDeck ? gameState.shuffledDeck.length : 0}
+                    playingAs={null}
                 />
+            </aside>
 
-                <div className="flex-1"></div>
-
-                <div className="flex flex-col items-center gap-4">
-                    <DeckDisplay count={gameState.shuffledDeck ? gameState.shuffledDeck.length : 0} />
-                    <TurnIndicator 
-                        currentTurn={currentTurn} 
-                        playingAs={null} 
-                        players={gameState.players}
-                        isOffline={true}
-                    />
+            {/* Main: Board + Hand */}
+            <main className="game-main">
+                <div className="board-area">
+                    <div className="board-wrapper">
+                        <GameBoard
+                            cards={gameState.cards}
+                            hoveredCards={hoveredMatches}
+                            selectedBoardId={null}
+                            hasCardSelected={!!selectedHandCard}
+                            onBoardClick={handleBoardClick}
+                        />
+                    </div>
                 </div>
-            </div>
 
-            {/* Right Area - Board & Hand */}
-            <div className="flex flex-col justify-between h-full relative">
-                <GameBoard 
-                    cards={gameState.cards} 
-                    hoveredCards={hoveredMatches}
-                    selectedBoardId={null} 
-                    onBoardClick={handleBoardClick}
-                />
-                
                 {status === 'playing' && (
-                    <PlayerHand 
+                    <PlayerHand
                         hand={currentPlayerObj.hand}
-                        isMyTurn={true} // In offline, it's always the turn of the person looking
+                        isMyTurn={true}
                         selectedHandCard={selectedHandCard}
-                        onCardSelect={setSelectedHandCard}
+                        onCardSelect={handleCardSelect}
                         onCardHover={setHoveredMatches}
                     />
                 )}
-            </div>
+            </main>
 
+            {/* Pass Device Overlay */}
             {status === 'pass-device' && (
-                <PassDeviceScreen 
-                    nextPlayerName={currentPlayerObj.name} 
-                    onReady={continueTurn} 
+                <PassDeviceScreen
+                    nextPlayerName={currentPlayerObj.name}
+                    nextTeam={currentPlayerObj.team}
+                    onReady={continueTurn}
                 />
             )}
 
-            <WinnerModal 
-                winner={winner} 
-                onPlayAgain={() => startLocalGame(gameState.players.player1.name, gameState.players.player2.name)} 
+            {/* Winner Modal */}
+            <WinnerModal
+                winner={winner}
+                players={gameState.players}
+                sequencesToWin={setupParams?.sequencesToWin || 2}
+                onPlayAgain={handlePlayAgain}
             />
         </div>
     );

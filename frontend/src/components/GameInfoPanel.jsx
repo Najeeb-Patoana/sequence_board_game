@@ -1,59 +1,60 @@
 import React from 'react';
 
-export default function GameInfoPanel({ scores, deckCount, players, playingAs }) {
+export default function GameInfoPanel({ scores, deckCount, players, currentTurn, playingAs }) {
+    const playerList = players ? Object.entries(players) : [];
+
+    const teamLabel = { blue: 'Blue', red: 'Red', green: 'Green' };
+    const teamColorClass = { blue: 'blue', red: 'red', green: 'green' };
+
+    const sequencesToWin = playerList.length === 3 ? 1 : 2;
+
     return (
-        <div className="glass-card p-6 flex flex-col gap-6">
-            <h2 className="text-center mb-4 text-gradient">Game Info</h2>
-            
-            <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                    <span className="text-muted">Goal</span>
-                    <span className="font-heading font-bold">{players && Object.keys(players).length === 3 ? "1 Sequence (3 Teams)" : "2 Sequences"}</span>
-                </div>
-                
-                {/* Team Scores */}
-                <div className="flex flex-col gap-3 mt-2">
-                    {/* Blue Team */}
-                    <div className="flex justify-between items-center bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
-                        <span className="text-blue-400 font-bold flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-                            Blue
-                            {playingAs && players && Object.values(players).find(p => p.team === 'blue' && p.name === playingAs) && ' (You)'}
-                        </span>
-                        <span className="text-2xl font-bold">{scores.blue || 0}</span>
-                    </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
 
-                    {/* Red Team */}
-                    <div className="flex justify-between items-center bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-                        <span className="text-red-400 font-bold flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
-                            Red
-                            {playingAs && players && Object.values(players).find(p => p.team === 'red' && p.name === playingAs) && ' (You)'}
-                        </span>
-                        <span className="text-2xl font-bold">{scores.red || 0}</span>
-                    </div>
+            {/* Players & Scores */}
+            <div className="info-card">
+                <div className="info-card-title">Players</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {playerList.map(([key, player]) => {
+                        const isActive = key === currentTurn;
+                        const team = player.team || 'blue';
+                        const score = scores?.[team] ?? 0;
+                        const isMe = playingAs && player.name === playingAs;
 
-                    {/* Green Team (if 3 players) */}
-                    {scores.green !== undefined && (
-                        <div className="flex justify-between items-center bg-green-500/10 p-3 rounded-lg border border-green-500/20">
-                            <span className="text-green-400 font-bold flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
-                                Green
-                                {playingAs && players && Object.values(players).find(p => p.team === 'green' && p.name === playingAs) && ' (You)'}
-                            </span>
-                            <span className="text-2xl font-bold">{scores.green || 0}</span>
-                        </div>
-                    )}
+                        return (
+                            <div key={key} className={`player-row ${isActive ? 'active' : ''}`}>
+                                <div className={`player-dot ${teamColorClass[team]}`} />
+                                <span className="player-name">
+                                    {player.name}
+                                    {isMe && <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: '4px' }}>(You)</span>}
+                                </span>
+                                {isActive && (
+                                    <div className={`turn-pulse ${team}`} style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0 }} />
+                                )}
+                                <span className={`player-score ${teamColorClass[team]}`}>{score}</span>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
-            
-            {/* Deck Info */}
-            <div className="glass-card p-4 text-center mt-4">
-                <h3 className="text-sm text-muted uppercase tracking-wider mb-2 font-semibold">Deck</h3>
-                <div className="text-3xl font-bold text-white mb-1">
-                    {deckCount} <span className="text-lg text-muted font-normal">/ 104</span>
+
+            {/* Goal */}
+            <div className="info-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Goal
+                </span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    {sequencesToWin} Sequence{sequencesToWin > 1 ? 's' : ''}
+                </span>
+            </div>
+
+            {/* Deck */}
+            <div className="deck-widget">
+                <div className="deck-icon">🂠</div>
+                <div className="deck-info">
+                    <div className="deck-count">{deckCount}</div>
+                    <div className="deck-label">Cards left in deck</div>
                 </div>
-                <div className="text-sm text-muted">Cards Remaining</div>
             </div>
         </div>
     );

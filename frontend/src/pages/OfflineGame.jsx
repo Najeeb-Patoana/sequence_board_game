@@ -10,22 +10,15 @@ import WinnerModal from '../components/WinnerModal';
 export default function OfflineGame() {
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     const [hoveredMatches, setHoveredMatches] = useState([]);
-    // selectedHandCard now stores the full card object (or null)
     const [selectedHandCard, setSelectedHandCard] = useState(null);
 
     const {
-        status,
-        gameState,
-        winner,
-        startLocalGame,
-        makeMove,
-        continueTurn,
-        quitGame
+        status, gameState, winner,
+        startLocalGame, makeMove, continueTurn, quitGame
     } = useOfflineGame();
 
-    // Store setup params for Play Again
     const setupParams = location.state;
 
     useEffect(() => {
@@ -39,16 +32,12 @@ export default function OfflineGame() {
         } else {
             navigate('/offline');
         }
-    }, []);  // run once on mount
+    }, []);
 
-    const handleQuit = () => {
-        quitGame();
-        navigate('/');
-    };
+    const handleQuit = () => { quitGame(); navigate('/'); };
 
     const handleBoardClick = (cardId) => {
         if (!selectedHandCard) return;
-        // selectedHandCard is the full card object; pass its id to makeMove
         const success = makeMove(cardId, selectedHandCard.id);
         if (success) {
             setSelectedHandCard(null);
@@ -58,17 +47,14 @@ export default function OfflineGame() {
 
     const handleCardSelect = (card) => {
         setSelectedHandCard(card);
-        // When deselecting, clear hover highlights too
         if (!card) setHoveredMatches([]);
     };
 
     const handlePlayAgain = () => {
         if (setupParams) {
             startLocalGame(
-                setupParams.p1Name,
-                setupParams.p2Name,
-                setupParams.p3Name,
-                setupParams.sequencesToWin
+                setupParams.p1Name, setupParams.p2Name,
+                setupParams.p3Name, setupParams.sequencesToWin
             );
         }
         setSelectedHandCard(null);
@@ -77,21 +63,18 @@ export default function OfflineGame() {
 
     if (!gameState) return null;
 
-    const currentTurn = Object.keys(gameState.players).find(key => gameState.players[key].isTurn);
+    const currentTurn = Object.keys(gameState.players).find(k => gameState.players[k].isTurn);
     const currentPlayerObj = gameState.players[currentTurn];
-    
+
     return (
+        /* 3-column grid: sidebar | board | hand */
         <div className="game-layout">
-            {/* Left Sidebar */}
+
+            {/* ── Left: info sidebar ─────────────────── */}
             <aside className="game-sidebar">
-                <button
-                    className="btn btn-ghost"
-                    onClick={handleQuit}
-                    style={{ fontSize: '0.82rem' }}
-                >
+                <button className="btn btn-ghost" onClick={handleQuit} style={{ fontSize: '0.8rem' }}>
                     ← Menu
                 </button>
-
                 <GameInfoPanel
                     scores={gameState.scores}
                     players={gameState.players}
@@ -101,7 +84,7 @@ export default function OfflineGame() {
                 />
             </aside>
 
-            {/* Main: Board + Hand */}
+            {/* ── Center: board only, fills remaining height ── */}
             <main className="game-main">
                 <div className="board-area">
                     <div className="board-wrapper">
@@ -114,19 +97,29 @@ export default function OfflineGame() {
                         />
                     </div>
                 </div>
+            </main>
 
-                {status === 'playing' && (
+            {/* ── Right: player hand (vertical) ─────── */}
+            <aside className="hand-sidebar">
+                {status === 'playing' ? (
                     <PlayerHand
                         hand={currentPlayerObj.hand}
                         isMyTurn={true}
                         selectedHandCard={selectedHandCard}
                         onCardSelect={handleCardSelect}
                         onCardHover={setHoveredMatches}
+                        vertical={true}
                     />
+                ) : (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                            Passing device…
+                        </div>
+                    </div>
                 )}
-            </main>
+            </aside>
 
-            {/* Pass Device Overlay */}
+            {/* Pass Device overlay */}
             {status === 'pass-device' && (
                 <PassDeviceScreen
                     nextPlayerName={currentPlayerObj.name}

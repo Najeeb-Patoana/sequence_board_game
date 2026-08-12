@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const PLAYER_COLORS = {
-    1: { label: 'Blue Team', color: '#60a5fa', accent: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.35)' },
-    2: { label: 'Red Team',  color: '#f87171', accent: 'rgba(232,64,64,0.15)',  border: 'rgba(232,64,64,0.35)' },
-    3: { label: 'Green Team',color: '#4ade80', accent: 'rgba(34,197,94,0.15)',  border: 'rgba(34,197,94,0.35)' },
+const TEAM = {
+    1: { label: 'Blue Team',  color: '#7aadde', border: 'rgba(74,127,193,0.3)',  bg: 'rgba(74,127,193,0.08)'  },
+    2: { label: 'Red Team',   color: '#de7a7a', border: 'rgba(193,74,74,0.3)',   bg: 'rgba(193,74,74,0.08)'   },
+    3: { label: 'Green Team', color: '#7ade9e', border: 'rgba(74,156,110,0.3)',  bg: 'rgba(74,156,110,0.08)'  },
 };
 
 export default function OfflineSetup() {
@@ -17,83 +17,91 @@ export default function OfflineSetup() {
 
     const handleStart = (e) => {
         e.preventDefault();
-        const name1 = p1Name.trim() || 'Player 1';
-        const name2 = p2Name.trim() || 'Player 2';
-        const name3 = p3Name.trim() || 'Player 3';
-
-        if (name1 && name2 && (numPlayers === 2 || name3)) {
-            navigate('/offline/game', {
-                state: {
-                    p1Name: name1,
-                    p2Name: name2,
-                    p3Name: numPlayers === 3 ? name3 : null,
-                    sequencesToWin,
-                },
-            });
-        }
+        const n1 = p1Name.trim() || 'Player 1';
+        const n2 = p2Name.trim() || 'Player 2';
+        const n3 = p3Name.trim() || 'Player 3';
+        navigate('/offline/game', {
+            state: {
+                p1Name: n1,
+                p2Name: n2,
+                p3Name: numPlayers === 3 ? n3 : null,
+                sequencesToWin,
+            },
+        });
     };
+
+    const players = [1, 2, ...(numPlayers === 3 ? [3] : [])];
 
     return (
         <div style={{
             minHeight: '100vh',
+            background: '#0d0d0d',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '1.5rem',
-            background: 'var(--bg-base)',
+            fontFamily: "'Inter', system-ui, sans-serif",
         }}>
-            <div style={{ width: '100%', maxWidth: '440px' }}>
+            <div style={{ width: '100%', maxWidth: '420px' }}>
+
                 {/* Back */}
                 <button
                     className="btn btn-ghost"
-                    style={{ marginBottom: '1.5rem', fontSize: '0.82rem' }}
                     onClick={() => navigate('/')}
+                    style={{ marginBottom: '1.25rem', fontSize: '0.8rem' }}
                 >
                     ← Back
                 </button>
 
-                <div className="glass-card" style={{ padding: '2rem' }}>
-                    {/* Title */}
-                    <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{
+                    background: '#141414',
+                    border: '1px solid rgba(255,255,255,0.09)',
+                    borderRadius: '16px',
+                    padding: '2rem',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                }}>
+                    {/* Header */}
+                    <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
                         <h1 style={{
-                            fontFamily: 'var(--font-heading)',
-                            fontSize: '1.75rem',
+                            fontFamily: "'Playfair Display', Georgia, serif",
+                            fontSize: '1.6rem',
                             fontWeight: 900,
-                            color: 'var(--text-primary)',
-                            marginBottom: '0.35rem',
+                            color: '#ede8dc',
+                            marginBottom: '0.3rem',
                         }}>
                             Local Game
                         </h1>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                            Set up your pass-and-play session
+                        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.82rem' }}>
+                            Pass &amp; play on one screen
                         </p>
                     </div>
 
-                    <form onSubmit={handleStart} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {/* Thin divider */}
+                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '1.5rem' }} />
 
-                        {/* Game settings row */}
+                    <form onSubmit={handleStart} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+
+                        {/* Settings row */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
-                                    Players
-                                </label>
+                                <label style={labelStyle}>Players</label>
                                 <select
                                     className="input"
                                     value={numPlayers}
                                     onChange={(e) => setNumPlayers(Number(e.target.value))}
+                                    style={selectExtra}
                                 >
                                     <option value={2}>2 Players</option>
                                     <option value={3}>3 Players</option>
                                 </select>
                             </div>
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
-                                    Sequences to Win
-                                </label>
+                                <label style={labelStyle}>Sequences to Win</label>
                                 <select
                                     className="input"
                                     value={sequencesToWin}
                                     onChange={(e) => setSequencesToWin(Number(e.target.value))}
+                                    style={selectExtra}
                                 >
                                     <option value={1}>1</option>
                                     <option value={2}>2</option>
@@ -103,56 +111,54 @@ export default function OfflineSetup() {
                         </div>
 
                         {/* Divider */}
-                        <div className="divider" />
+                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }} />
 
-                        {/* Player fields */}
-                        {[1, 2, ...(numPlayers === 3 ? [3] : [])].map((n) => {
-                            const cfg = PLAYER_COLORS[n];
-                            const value = n === 1 ? p1Name : n === 2 ? p2Name : p3Name;
-                            const setter = n === 1 ? setP1Name : n === 2 ? setP2Name : setP3Name;
-                            const placeholder = `Player ${n}`;
-
+                        {/* Player name fields */}
+                        {players.map((n) => {
+                            const t = TEAM[n];
+                            const val = n === 1 ? p1Name : n === 2 ? p2Name : p3Name;
+                            const set = n === 1 ? setP1Name : n === 2 ? setP2Name : setP3Name;
                             return (
                                 <div key={n}>
-                                    <label style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.4rem',
-                                        fontSize: '0.78rem',
-                                        fontWeight: 700,
-                                        color: cfg.color,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.08em',
-                                        marginBottom: '0.4rem',
-                                    }}>
-                                        <span style={{
-                                            width: '8px', height: '8px',
-                                            borderRadius: '50%',
-                                            background: cfg.color,
-                                            display: 'inline-block',
-                                        }} />
-                                        Player {n} — {cfg.label}
+                                    <label style={{ ...labelStyle, color: t.color, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: t.color, display: 'inline-block', flexShrink: 0 }} />
+                                        Player {n} — {t.label}
                                     </label>
                                     <input
                                         type="text"
                                         className="input"
-                                        style={{
-                                            borderColor: cfg.border,
-                                            background: cfg.accent,
-                                        }}
-                                        placeholder={placeholder}
-                                        value={value}
-                                        onChange={(e) => setter(e.target.value)}
+                                        placeholder={`Player ${n}`}
+                                        value={val}
+                                        onChange={(e) => set(e.target.value)}
                                         maxLength={15}
+                                        style={{
+                                            borderColor: t.border,
+                                            background: t.bg,
+                                        }}
                                     />
                                 </div>
                             );
                         })}
 
+                        {/* Submit */}
                         <button
                             type="submit"
-                            className="btn btn-success btn-lg w-full"
-                            style={{ marginTop: '0.5rem' }}
+                            style={{
+                                marginTop: '0.5rem',
+                                padding: '0.8rem',
+                                background: '#c9a84c',
+                                color: '#0d0d0d',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '0.9rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                letterSpacing: '0.03em',
+                                transition: 'background 0.15s ease, transform 0.15s ease',
+                                fontFamily: "'Inter', system-ui, sans-serif",
+                            }}
+                            onMouseEnter={(e) => { e.target.style.background = '#e2c47a'; e.target.style.transform = 'translateY(-1px)'; }}
+                            onMouseLeave={(e) => { e.target.style.background = '#c9a84c'; e.target.style.transform = 'translateY(0)'; }}
                         >
                             Start Game →
                         </button>
@@ -162,3 +168,17 @@ export default function OfflineSetup() {
         </div>
     );
 }
+
+const labelStyle = {
+    display: 'block',
+    fontSize: '0.7rem',
+    fontWeight: 600,
+    color: 'rgba(255,255,255,0.35)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    marginBottom: '0.4rem',
+};
+
+const selectExtra = {
+    fontSize: '0.85rem',
+};

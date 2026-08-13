@@ -237,9 +237,6 @@ export function useOnlineGame() {
 }
 
 
-// Use env variable for server URL — set VITE_SERVER_URL in your .env file
-// For ngrok: VITE_SERVER_URL=https://xxxx.ngrok-free.app
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
 export function useOnlineGame() {
     const [socket, setSocket] = useState(null);

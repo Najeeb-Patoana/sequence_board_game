@@ -123,46 +123,72 @@ io.on('connection', (socket) => {
     // --- ROOM CONTROLLER EVENTS ---
     
     socket.on('create_custom_room', (data, callback) => {
-        const { playerName } = data;
-        const roomId = generateUniqueRoomId();
-        
-        rooms.set(roomId, {
-            roomId,
-            players: [socket.id],
-            playersName: [playerName],
-            isCustom: true,
-            empty: true,
-            game: null
-        });
+        try {
+            const { playerName } = data;
+            const roomId = generateUniqueRoomId();
 
-        socket.join(roomId);
-        sessions.get(sessionID).roomId = roomId;
-        sessions.get(sessionID).playingAs = 'player1';
+            rooms.set(roomId, {
+                roomId,
+                players: [socket.id],
+                playersName: [playerName],
+                isCustom: true,
+                empty: true,
+                game: null
+            });
 
-        initializeGameForRoom(roomId, playerName, socket.id);
-        socket.emit('custom_room_created', { roomId });
-        
-        if (typeof callback === 'function') callback({ roomId });
+            socket.join(roomId);
+
+            // Ensure session exists (server may have restarted)
+            if (!sessions.has(sessionID)) {
+                sessionID = createSession(socket.id);
+                activeSockets.set(sessionID, socket);
+                socket.emit('session', { sessionId: sessionID });
+            }
+            sessions.get(sessionID).roomId = roomId;
+            sessions.get(sessionID).playingAs = 'player1';
+
+            initializeGameForRoom(roomId, playerName, socket.id);
+            socket.emit('custom_room_created', { roomId });
+
+            if (typeof callback === 'function') callback({ roomId });
+        } catch (err) {
+            console.error('create_custom_room error:', err);
+            socket.emit('room_join_error', { message: 'Server error creating room. Please try again.' });
+            if (typeof callback === 'function') callback({ success: false, message: err.message });
+        }
     });
 
     socket.on('join_custom_room', (data, callback) => {
-        const { roomId, playerName } = data;
-        let room = rooms.get(roomId);
+        try {
+            const { roomId, playerName } = data;
+            let room = rooms.get(roomId);
 
-        if (room && room.players.length < 2) {
-            room.players.push(socket.id);
-            room.playersName.push(playerName);
-            room.empty = false;
-            
-            socket.join(roomId);
-            sessions.get(sessionID).roomId = roomId;
-            sessions.get(sessionID).playingAs = 'player2';
-            
-            startGameForRoom(roomId, playerName, socket.id);
-            if (typeof callback === 'function') callback({ success: true });
-        } else {
-            socket.emit('room_join_error', { message: 'Room is full or does not exist.' });
-            if (typeof callback === 'function') callback({ success: false, message: 'Room full or invalid' });
+            if (room && room.players.length < 2) {
+                room.players.push(socket.id);
+                room.playersName.push(playerName);
+                room.empty = false;
+
+                socket.join(roomId);
+
+                if (!sessions.has(sessionID)) {
+                    sessionID = createSession(socket.id);
+                    activeSockets.set(sessionID, socket);
+                    socket.emit('session', { sessionId: sessionID });
+                }
+                sessions.get(sessionID).roomId = roomId;
+                sessions.get(sessionID).playingAs = 'player2';
+
+                startGameForRoom(roomId, playerName, socket.id);
+                if (typeof callback === 'function') callback({ success: true });
+            } else {
+                const msg = room ? 'Room is already full.' : 'Room not found. Check the Room ID.';
+                socket.emit('room_join_error', { message: msg });
+                if (typeof callback === 'function') callback({ success: false, message: msg });
+            }
+        } catch (err) {
+            console.error('join_custom_room error:', err);
+            socket.emit('room_join_error', { message: 'Server error joining room. Please try again.' });
+            if (typeof callback === 'function') callback({ success: false, message: err.message });
         }
     });
 

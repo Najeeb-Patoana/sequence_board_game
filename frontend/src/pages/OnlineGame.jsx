@@ -23,7 +23,7 @@ export default function OnlineGame() {
     const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
     const {
-        status, roomInfo, playerInfo, gameState, errorMsg, winner,
+        isConnected, status, roomInfo, playerInfo, gameState, errorMsg, winner,
         createCustomRoom, joinCustomRoom, playOnline, makeMove, quitGame, setStatus
     } = useOnlineGame();
 
@@ -90,18 +90,56 @@ export default function OnlineGame() {
 
     /* ── Setup / Error screen ────────────────────────────── */
     if (status === 'idle' || setupState === 'error') {
+
+        // Connection status banner
+        const connBanner = !isConnected ? (
+            <div style={{
+                background: 'rgba(193,74,74,0.12)',
+                border: '1px solid rgba(193,74,74,0.3)',
+                color: '#de7a7a',
+                padding: '0.6rem 1rem',
+                borderRadius: 'var(--r-md)',
+                marginBottom: '1rem',
+                fontSize: '0.82rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+            }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#de7a7a', flexShrink: 0, animation: 'dotPulse 1.4s ease-in-out infinite' }} />
+                Connecting to server… buttons will enable once connected.
+            </div>
+        ) : (
+            <div style={{
+                background: 'rgba(52,199,89,0.1)',
+                border: '1px solid rgba(52,199,89,0.25)',
+                color: '#34c759',
+                padding: '0.5rem 0.9rem',
+                borderRadius: 'var(--r-md)',
+                marginBottom: '1rem',
+                fontSize: '0.78rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+            }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#34c759', flexShrink: 0 }} />
+                Connected to server
+            </div>
+        );
+
         return (
             <div className="page-center">
                 <div style={{ width: '100%', maxWidth: '500px' }}>
                     <button className="btn btn-ghost" style={{ marginBottom: '1.5rem', fontSize: '0.82rem' }} onClick={() => navigate('/')}>← Back</button>
                     <div className="glass-card" style={{ padding: '2rem' }}>
                         <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 900, textAlign: 'center', marginBottom: '0.4rem' }}>Online Multiplayer</h1>
-                        <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '1.75rem', fontSize: '0.85rem' }}>Play with friends over the internet</p>
+                        <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '1.25rem', fontSize: '0.85rem' }}>Play with friends over the internet</p>
+
+                        {connBanner}
 
                         {errorMsg && (
-                            <div style={{ background: 'rgba(193,74,74,0.1)', border: '1px solid rgba(193,74,74,0.3)', color: '#de7a7a', padding: '0.75rem 1rem', borderRadius: 'var(--r-md)', marginBottom: '1.25rem', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between' }}>
+                            <div style={{ background: 'rgba(193,74,74,0.1)', border: '1px solid rgba(193,74,74,0.3)', color: '#de7a7a', padding: '0.75rem 1rem', borderRadius: 'var(--r-md)', marginBottom: '1.25rem', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                                 <span>{errorMsg}</span>
-                                <button style={{ background: 'none', border: 'none', color: '#de7a7a', cursor: 'pointer', fontWeight: 700 }} onClick={() => { setStatus('idle'); setSetupState('setup'); }}>✕</button>
+                                <button style={{ background: 'none', border: 'none', color: '#de7a7a', cursor: 'pointer', fontWeight: 700, flexShrink: 0 }} onClick={() => { setStatus('idle'); setSetupState('setup'); }}>✕</button>
                             </div>
                         )}
 
@@ -111,23 +149,30 @@ export default function OnlineGame() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {/* Quick Match */}
                             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--r-md)', padding: '1.25rem' }}>
-                                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>Quick Match</h3>
+                                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quick Match</h3>
                                 <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.5 }}>Get matched with a random opponent anywhere in the world.</p>
-                                <button className="btn btn-primary w-full" onClick={handleQuickMatch} disabled={!name.trim()}>Find Random Opponent</button>
+                                <button className="btn btn-primary w-full" onClick={handleQuickMatch} disabled={!name.trim() || !isConnected}>
+                                    {isConnected ? 'Find Random Opponent' : 'Connecting…'}
+                                </button>
                             </div>
+
+                            {/* Play with Friends */}
                             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--r-md)', padding: '1.25rem' }}>
                                 <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>Play with Friends</h3>
                                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                                    <input type="text" className="input" placeholder="Room ID" value={joinRoomId} onChange={(e) => setJoinRoomId(e.target.value)} style={{ flex: 1 }} />
-                                    <button className="btn btn-primary" onClick={handleJoinCustom} disabled={!name.trim() || !joinRoomId.trim()}>Join</button>
+                                    <input type="text" className="input" placeholder="Enter Room ID" value={joinRoomId} onChange={(e) => setJoinRoomId(e.target.value)} style={{ flex: 1 }} />
+                                    <button className="btn btn-primary" onClick={handleJoinCustom} disabled={!name.trim() || !joinRoomId.trim() || !isConnected}>Join</button>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                                     <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
                                     <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>OR</span>
                                     <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
                                 </div>
-                                <button className="btn btn-ghost w-full" onClick={handleCreateRoom} disabled={!name.trim()}>Create Private Room</button>
+                                <button className="btn btn-ghost w-full" onClick={handleCreateRoom} disabled={!name.trim() || !isConnected}>
+                                    {isConnected ? 'Create Private Room' : 'Connecting…'}
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -851,6 +851,11 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   50%      { opacity: 0.4; transform: scale(1.6); }
 }
 
+@keyframes dotPulse {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50%       { opacity: 1;    transform: scale(1.1); }
+}
+
 /* ── Deck widget: stacked card-back images ── */
 .deck-widget {
   display: flex;

@@ -105,6 +105,7 @@ io.on('connection', (socket) => {
                     const isPlayer1 = session.playingAs === "player1";
                     io.to(socket.id).emit('OpponentFound', {
                         opponentName: isPlayer1 ? game.players.player2.name : game.players.player1.name,
+                        yourName: isPlayer1 ? game.players.player1.name : game.players.player2.name,
                         yourHand: isPlayer1 ? game.players.player1.hand : game.players.player2.hand,
                         playingAs: session.playingAs,
                         deckCount: game.shuffledDeck.length,

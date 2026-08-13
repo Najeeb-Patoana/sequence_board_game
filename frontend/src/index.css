@@ -923,6 +923,12 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   font-weight: 500;
   margin-top: 2px;
 }
+.deck-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 
 /* ============================================================
    MODALS & OVERLAYS

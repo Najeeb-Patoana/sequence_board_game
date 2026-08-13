@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || '';
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'X';
 
 export function useOnlineGame() {
     const socketRef = useRef(null);

@@ -1,9 +1,7 @@
 ﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 
-// Set VITE_SERVER_URL in frontend/.env
-// For ngrok: VITE_SERVER_URL=https://xxxx.ngrok-free.app
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || '';
 
 export function useOnlineGame() {
     const socketRef = useRef(null);

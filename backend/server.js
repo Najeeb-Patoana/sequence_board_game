@@ -6,7 +6,7 @@ const allCards = require('./allCards.js');
 const gameEngine = require('./gameEngine.js');
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: '*' }));
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -64,6 +64,7 @@ async function startGameForRoom(roomId, playerName, socketId) {
         // Emit to Player 1
         io.to(game.players.player1.socketId).emit('OpponentFound', {
             opponentName: playerName,
+            yourName: game.players.player1.name,
             yourHand: game.players.player1.hand,
             playingAs: "player1",
             deckCount: game.shuffledDeck.length,
@@ -73,6 +74,7 @@ async function startGameForRoom(roomId, playerName, socketId) {
         // Emit to Player 2
         io.to(socketId).emit('OpponentFound', {
             opponentName: game.players.player1.name,
+            yourName: playerName,
             yourHand: game.players.player2.hand,
             playingAs: "player2",
             deckCount: game.shuffledDeck.length,

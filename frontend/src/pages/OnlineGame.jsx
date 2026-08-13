@@ -7,6 +7,7 @@ import GameInfoPanel from '../components/GameInfoPanel';
 import TurnIndicator from '../components/TurnIndicator';
 import WaitingRoom from '../components/WaitingRoom';
 import WinnerModal from '../components/WinnerModal';
+import LeaveGameDialog from '../components/LeaveGameDialog';
 
 export default function OnlineGame() {
     const { roomId: urlRoomId } = useParams();
@@ -14,8 +15,12 @@ export default function OnlineGame() {
     const [name, setName] = useState('');
     const [joinRoomId, setJoinRoomId] = useState('');
     const [setupState, setSetupState] = useState(urlRoomId ? 'joining' : 'setup');
+    // Hover-only highlights
     const [hoveredMatches, setHoveredMatches] = useState([]);
+    // Persistent highlights for selected card
+    const [selectedHighlights, setSelectedHighlights] = useState([]);
     const [selectedHandCard, setSelectedHandCard] = useState(null);
+    const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
     const {
         status, roomInfo, playerInfo, gameState, errorMsg, winner,
@@ -33,24 +38,41 @@ export default function OnlineGame() {
     const handleCreateRoom = () => { if (name.trim()) createCustomRoom(name.trim()); };
     const handleJoinCustom = () => { if (name.trim() && joinRoomId.trim()) joinCustomRoom(joinRoomId.trim(), name.trim()); };
     const handleQuickMatch = () => { if (name.trim()) playOnline(name.trim()); };
-    const handleQuit = () => { quitGame(); navigate('/'); };
+
+    const handleQuitConfirmed = () => {
+        quitGame();
+        navigate('/');
+    };
 
     const handleBoardClick = (cardId) => {
         if (selectedHandCard) {
             makeMove(cardId, selectedHandCard.id);
             setSelectedHandCard(null);
             setHoveredMatches([]);
+            setSelectedHighlights([]);
         }
     };
+
     const handleCardSelect = (card) => {
         setSelectedHandCard(card);
-        if (!card) setHoveredMatches([]);
+        if (card) {
+            setSelectedHighlights(card.matches || []);
+        } else {
+            setSelectedHighlights([]);
+            setHoveredMatches([]);
+        }
+    };
+
+    const handleCardHover = (matches) => {
+        if (!selectedHandCard) {
+            setHoveredMatches(matches);
+        }
     };
 
     /* ── Join private room (URL) ─────────────────────────── */
     if (setupState === 'joining' && status === 'idle') {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+            <div className="page-center">
                 <div className="glass-card" style={{ maxWidth: '400px', width: '100%', padding: '2rem' }}>
                     <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.5rem', textAlign: 'center' }}>Join Private Room</h2>
                     <p style={{ color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
@@ -69,7 +91,7 @@ export default function OnlineGame() {
     /* ── Setup / Error screen ────────────────────────────── */
     if (status === 'idle' || setupState === 'error') {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+            <div className="page-center">
                 <div style={{ width: '100%', maxWidth: '500px' }}>
                     <button className="btn btn-ghost" style={{ marginBottom: '1.5rem', fontSize: '0.82rem' }} onClick={() => navigate('/')}>← Back</button>
                     <div className="glass-card" style={{ padding: '2rem' }}>
@@ -91,6 +113,7 @@ export default function OnlineGame() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--r-md)', padding: '1.25rem' }}>
                                 <h3 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem' }}>Quick Match</h3>
+                                <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', lineHeight: 1.5 }}>Get matched with a random opponent anywhere in the world.</p>
                                 <button className="btn btn-primary w-full" onClick={handleQuickMatch} disabled={!name.trim()}>Find Random Opponent</button>
                             </div>
                             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--r-md)', padding: '1.25rem' }}>
@@ -116,34 +139,43 @@ export default function OnlineGame() {
     /* ── Waiting room ────────────────────────────────────── */
     if (status === 'waiting') {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-                <button className="btn btn-ghost" style={{ marginBottom: '1.5rem', fontSize: '0.82rem' }} onClick={handleQuit}>← Leave Room</button>
-                <WaitingRoom roomId={roomInfo?.roomId} />
+            <div className="page-center" style={{ flexDirection: 'column', gap: '1.5rem' }}>
+                <WaitingRoom
+                    roomId={roomInfo?.roomId}
+                    onLeave={() => { quitGame(); navigate('/'); }}
+                />
             </div>
         );
     }
 
     /* ── In-game (3-column) ──────────────────────────────── */
     if ((status === 'playing' || status === 'gameover') && gameState) {
-        const isMyTurn = gameState.currentTurn === playerInfo.playingAs;
+        const isMyTurn = gameState.currentTurn === playerInfo?.playingAs;
         const currentTurnKey = gameState.currentTurn;
+        const effectiveHighlights = selectedHandCard ? selectedHighlights : hoveredMatches;
 
         return (
             <div className="game-layout">
 
                 {/* ── Left: info sidebar ──────────────── */}
                 <aside className="game-sidebar">
-                    <button className="btn btn-ghost" style={{ fontSize: '0.8rem' }} onClick={handleQuit}>← Leave</button>
+                    <button
+                        className="btn btn-ghost"
+                        style={{ fontSize: '0.8rem' }}
+                        onClick={() => setShowLeaveDialog(true)}
+                    >
+                        ← Leave
+                    </button>
                     <GameInfoPanel
                         scores={gameState.scores}
                         players={gameState.players}
                         currentTurn={currentTurnKey}
                         deckCount={gameState.deckCount}
-                        playingAs={playerInfo.playingAs}
+                        playingAs={playerInfo?.name}
                     />
                     <TurnIndicator
                         currentTurn={currentTurnKey}
-                        playingAs={playerInfo.playingAs}
+                        playingAs={playerInfo?.playingAs}
                         players={gameState.players}
                         isOffline={false}
                     />
@@ -155,7 +187,7 @@ export default function OnlineGame() {
                         <div className="board-wrapper">
                             <GameBoard
                                 cards={gameState.cards}
-                                hoveredCards={hoveredMatches}
+                                hoveredCards={effectiveHighlights}
                                 selectedBoardId={null}
                                 hasCardSelected={!!selectedHandCard}
                                 onBoardClick={handleBoardClick}
@@ -167,14 +199,22 @@ export default function OnlineGame() {
                 {/* ── Right: player hand (vertical) ───── */}
                 <aside className="hand-sidebar">
                     <PlayerHand
-                        hand={playerInfo.hand}
+                        hand={playerInfo?.hand}
                         isMyTurn={isMyTurn}
                         selectedHandCard={selectedHandCard}
                         onCardSelect={handleCardSelect}
-                        onCardHover={setHoveredMatches}
+                        onCardHover={handleCardHover}
                         vertical={true}
                     />
                 </aside>
+
+                {/* Leave confirmation dialog */}
+                <LeaveGameDialog
+                    isOpen={showLeaveDialog}
+                    onCancel={() => setShowLeaveDialog(false)}
+                    onLeave={handleQuitConfirmed}
+                    isOnline={true}
+                />
 
                 <WinnerModal
                     winner={winner}

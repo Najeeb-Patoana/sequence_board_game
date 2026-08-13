@@ -18,7 +18,6 @@ export default function GameBoard({ cards, hoveredCards = [], selectedBoardId, h
                 } else if (isHighlighted) {
                     cellClass += ' highlight-valid';
                 } else if (hasCardSelected && !isOccupied) {
-                    // subtle pointer on all non-occupied when something is selected
                     cellClass += ' can-click';
                 }
 
@@ -37,6 +36,17 @@ export default function GameBoard({ cards, hoveredCards = [], selectedBoardId, h
                         onClick={() => !isCorner && onBoardClick(card.id)}
                         style={!isCorner ? { cursor: isHighlighted ? 'pointer' : hasCardSelected ? 'pointer' : 'default' } : {}}
                     >
+                        {/* Corner cells: show the card-back image (wild in Sequence) */}
+                        {isCorner && (
+                            <img
+                                src="/cards/corner.svg"
+                                alt="Wild corner"
+                                draggable={false}
+                                className="corner-img"
+                            />
+                        )}
+
+                        {/* Normal board cells */}
                         {!isCorner && card.img && (
                             <img
                                 src={card.img}

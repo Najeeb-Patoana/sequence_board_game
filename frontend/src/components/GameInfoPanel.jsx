@@ -48,12 +48,17 @@ export default function GameInfoPanel({ scores, deckCount, players, currentTurn,
                 </span>
             </div>
 
-            {/* Deck */}
+            {/* Deck — card-back image stack */}
             <div className="deck-widget">
-                <div className="deck-icon">🂠</div>
+                <div className="deck-stack">
+                    <img src="/cards/corner.svg" alt="" className="deck-stack-card" draggable={false} />
+                    <img src="/cards/corner.svg" alt="" className="deck-stack-card" draggable={false} />
+                    <img src="/cards/corner.svg" alt="" className="deck-stack-card" draggable={false} />
+                    <div className="deck-stack-badge">{deckCount}</div>
+                </div>
                 <div className="deck-info">
                     <div className="deck-count">{deckCount}</div>
-                    <div className="deck-label">Cards left in deck</div>
+                    <div className="deck-label">Cards left</div>
                 </div>
             </div>
         </div>

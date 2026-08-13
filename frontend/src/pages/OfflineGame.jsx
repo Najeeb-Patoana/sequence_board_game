@@ -6,13 +6,18 @@ import PlayerHand from '../components/PlayerHand';
 import GameInfoPanel from '../components/GameInfoPanel';
 import PassDeviceScreen from '../components/PassDeviceScreen';
 import WinnerModal from '../components/WinnerModal';
+import LeaveGameDialog from '../components/LeaveGameDialog';
 
 export default function OfflineGame() {
     const location = useLocation();
     const navigate = useNavigate();
 
+    // Hover-only highlights (mouse over a hand card)
     const [hoveredMatches, setHoveredMatches] = useState([]);
+    // Persistent highlights for the selected card (survives mouseLeave)
+    const [selectedHighlights, setSelectedHighlights] = useState([]);
     const [selectedHandCard, setSelectedHandCard] = useState(null);
+    const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
     const {
         status, gameState, winner,
@@ -34,7 +39,10 @@ export default function OfflineGame() {
         }
     }, []);
 
-    const handleQuit = () => { quitGame(); navigate('/'); };
+    const handleQuitConfirmed = () => {
+        quitGame();
+        navigate('/');
+    };
 
     const handleBoardClick = (cardId) => {
         if (!selectedHandCard) return;
@@ -42,12 +50,27 @@ export default function OfflineGame() {
         if (success) {
             setSelectedHandCard(null);
             setHoveredMatches([]);
+            setSelectedHighlights([]);
         }
     };
 
     const handleCardSelect = (card) => {
         setSelectedHandCard(card);
-        if (!card) setHoveredMatches([]);
+        if (card) {
+            // Lock in the matches for this card so they stay highlighted
+            // even after mouseLeave fires
+            setSelectedHighlights(card.matches || []);
+        } else {
+            setSelectedHighlights([]);
+            setHoveredMatches([]);
+        }
+    };
+
+    const handleCardHover = (matches) => {
+        // Only show hover highlights if no card is selected yet
+        if (!selectedHandCard) {
+            setHoveredMatches(matches);
+        }
     };
 
     const handlePlayAgain = () => {
@@ -59,6 +82,7 @@ export default function OfflineGame() {
         }
         setSelectedHandCard(null);
         setHoveredMatches([]);
+        setSelectedHighlights([]);
     };
 
     if (!gameState) return null;
@@ -66,13 +90,22 @@ export default function OfflineGame() {
     const currentTurn = Object.keys(gameState.players).find(k => gameState.players[k].isTurn);
     const currentPlayerObj = gameState.players[currentTurn];
 
+    // Merge hover + selection highlights — selection takes priority
+    const effectiveHighlights = selectedHandCard
+        ? selectedHighlights
+        : hoveredMatches;
+
     return (
         /* 3-column grid: sidebar | board | hand */
         <div className="game-layout">
 
             {/* ── Left: info sidebar ─────────────────── */}
             <aside className="game-sidebar">
-                <button className="btn btn-ghost" onClick={handleQuit} style={{ fontSize: '0.8rem' }}>
+                <button
+                    className="btn btn-ghost"
+                    onClick={() => setShowLeaveDialog(true)}
+                    style={{ fontSize: '0.8rem' }}
+                >
                     ← Menu
                 </button>
                 <GameInfoPanel
@@ -90,7 +123,7 @@ export default function OfflineGame() {
                     <div className="board-wrapper">
                         <GameBoard
                             cards={gameState.cards}
-                            hoveredCards={hoveredMatches}
+                            hoveredCards={effectiveHighlights}
                             selectedBoardId={null}
                             hasCardSelected={!!selectedHandCard}
                             onBoardClick={handleBoardClick}
@@ -107,7 +140,7 @@ export default function OfflineGame() {
                         isMyTurn={true}
                         selectedHandCard={selectedHandCard}
                         onCardSelect={handleCardSelect}
-                        onCardHover={setHoveredMatches}
+                        onCardHover={handleCardHover}
                         vertical={true}
                     />
                 ) : (
@@ -127,6 +160,14 @@ export default function OfflineGame() {
                     onReady={continueTurn}
                 />
             )}
+
+            {/* Leave confirmation dialog */}
+            <LeaveGameDialog
+                isOpen={showLeaveDialog}
+                onCancel={() => setShowLeaveDialog(false)}
+                onLeave={handleQuitConfirmed}
+                isOnline={false}
+            />
 
             {/* Winner Modal */}
             <WinnerModal

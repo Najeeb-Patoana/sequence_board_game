@@ -106,7 +106,7 @@ export default function OnlineGame() {
                 gap: '0.5rem',
             }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#de7a7a', flexShrink: 0, animation: 'dotPulse 1.4s ease-in-out infinite' }} />
-                Connecting to server… buttons will enable once connected.
+                Connecting to server…
             </div>
         ) : (
             <div style={{

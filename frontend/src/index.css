@@ -225,12 +225,7 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
 
 .game-layout {
   display: grid;
-  /*
-   * Left  = info sidebar (196px)
-   * Mid   = board fills remaining space (1fr)
-   * Right = player hand column (168px)
-   */
-  grid-template-columns: 196px 1fr 168px;
+  grid-template-columns: 180px 1fr 148px;
   height: 100vh;
   overflow: hidden;
   background: var(--bg-base);
@@ -498,20 +493,19 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   border-radius: 1px;
 }
 
-/* Corner cells — show the card-back SVG (wild in Sequence) */
+/* Corner cells — show the card-back SVG, styled exactly like a normal board card */
 .board-cell.corner {
   background: #faf6ef;
   cursor: default;
-  padding: 0;
 }
 
-/* Corner card-back image fills the cell exactly */
+/* Corner image inherits the same sizing as normal .board-cell img */
 .board-cell.corner .corner-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 96%;
+  height: 96%;
+  object-fit: contain;
   display: block;
-  border-radius: 0;
+  border-radius: 1px;
   pointer-events: none;
 }
 

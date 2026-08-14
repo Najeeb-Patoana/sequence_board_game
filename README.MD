@@ -29,11 +29,11 @@ Get a glimpse of the sleek and modern user interface designed for an immersive g
 ### 🌐 Multiplayer Experience
 Seamlessly join friends or find opponents online.
 
-| Multiplayer Dashboard | Creating a Custom Room |
+| Creating a Custom Room | Waiting Lobby |
 | :---: | :---: |
 | <img src="screenshots/multiplayer%201.png" alt="Multiplayer Setup" width="100%"> | <img src="screenshots/multiplayer%202.png" alt="Creating Room" width="100%"> |
 
-| Waiting Lobby | Match Starting |
+| Join Through Link | Match Starting |
 | :---: | :---: |
 | <img src="screenshots/multiplayer%203.png" alt="Waiting Lobby" width="100%"> | <img src="screenshots/multiplayer%204.png" alt="Match Starting" width="100%"> |
 

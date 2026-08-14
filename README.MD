@@ -4,7 +4,7 @@
 
 A modern, full-stack implementation of the classic **Sequence** board game. Play online with friends in custom rooms, hop into a quick match with random players, or test your skills against CPU bots with varying difficulty levels.
 
-**🌟 Play Now:** [Live Demo](https://sequence-board-game-najeeb.vercel.app/)  
+**🌟 Play Now:** <a href="https://sequence-board-game-najeeb.vercel.app/" target="_blank">Live Demo</a>  
 **💻 GitHub Repository:** [Source Code](https://github.com/Najeeb-Patoana/sequence_board_game)
 
 ---

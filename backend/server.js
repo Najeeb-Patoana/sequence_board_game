@@ -43,6 +43,14 @@ app.use(cors({
     methods: ['GET'],
 }));
 
+// Health check route
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'UP',
+        time: new Date().toISOString()
+    });
+});
+
 // Block all unexpected HTTP routes (this is a WS server)
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 

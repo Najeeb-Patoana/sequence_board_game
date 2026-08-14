@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { sanitiseName, sanitiseRoomCode, isValidRoomCode, clampToSet, VALID_PLAYER_COUNTS } from '../utils/sanitise';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || window.location.origin;
 
 export function useOnlineGame() {
     const socketRef = useRef(null);

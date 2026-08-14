@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOnlineGame } from '../hooks/useOnlineGame';
+import { sanitiseName, sanitiseRoomCode } from '../utils/sanitise';
 import GameBoard from '../components/GameBoard';
 import PlayerHand from '../components/PlayerHand';
 import GameInfoPanel from '../components/GameInfoPanel';
@@ -51,11 +52,14 @@ export default function OnlineGame() {
     };
 
     const handleJoinCustom = () => {
-        if (name.trim() && joinCode.trim()) joinCustomRoom(joinCode.trim(), name.trim());
+        const safeName = sanitiseName(name);
+        const safeCode = sanitiseRoomCode(joinCode);
+        if (safeName && safeCode) joinCustomRoom(safeCode, safeName);
     };
 
     const handleQuickMatch = () => {
-        if (name.trim()) playOnline(name.trim());
+        const safeName = sanitiseName(name);
+        if (safeName) playOnline(safeName);
     };
 
     const handleQuitConfirmed = () => { quitGame(); navigate('/'); };

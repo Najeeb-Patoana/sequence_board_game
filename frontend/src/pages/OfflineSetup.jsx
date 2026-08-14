@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deriveNumTeams, deriveSequencesToWin } from '../engine/gameEngine';
+import { sanitiseName } from '../utils/sanitise';
 
 const TEAM_COLORS = ['blue', 'red', 'green'];
 const TEAM_STYLES = {
@@ -27,9 +28,11 @@ export default function OfflineSetup() {
     const isTeamPlay = numTeams < numPlayers;
 
     const handleNameChange = (idx, val) => {
+        // Sanitise in real-time so nothing invalid can even be typed in
+        const safe = sanitiseName(val);
         setNames(prev => {
             const next = [...prev];
-            next[idx] = val;
+            next[idx] = safe;
             return next;
         });
     };
@@ -37,7 +40,7 @@ export default function OfflineSetup() {
     const handleStart = (e) => {
         e.preventDefault();
         const playerNames = Array.from({ length: numPlayers }, (_, i) =>
-            names[i]?.trim() || `Player ${i + 1}`
+            sanitiseName(names[i]) || `Player ${i + 1}`
         );
         navigate('/offline/game', {
             state: { playerNames, numPlayers },

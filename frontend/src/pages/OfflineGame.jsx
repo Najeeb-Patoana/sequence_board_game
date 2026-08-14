@@ -12,41 +12,31 @@ export default function OfflineGame() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Hover-only highlights (mouse over a hand card)
-    const [hoveredMatches, setHoveredMatches] = useState([]);
-    // Persistent highlights for the selected card (survives mouseLeave)
+    const [hoveredMatches,    setHoveredMatches]    = useState([]);
     const [selectedHighlights, setSelectedHighlights] = useState([]);
-    const [selectedHandCard, setSelectedHandCard] = useState(null);
-    const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+    const [selectedHandCard,  setSelectedHandCard]  = useState(null);
+    const [showLeaveDialog,   setShowLeaveDialog]   = useState(false);
 
     const {
         status, gameState, winner,
-        startLocalGame, makeMove, continueTurn, quitGame
+        startLocalGame, makeMove, declareDeadCard, continueTurn, quitGame,
     } = useOfflineGame();
 
     const setupParams = location.state;
 
     useEffect(() => {
-        if (setupParams?.p1Name && setupParams?.p2Name) {
-            startLocalGame(
-                setupParams.p1Name,
-                setupParams.p2Name,
-                setupParams.p3Name,
-                setupParams.sequencesToWin
-            );
+        if (setupParams?.playerNames && setupParams?.numPlayers) {
+            startLocalGame(setupParams.playerNames, setupParams.numPlayers);
         } else {
             navigate('/offline');
         }
     }, []);
 
-    const handleQuitConfirmed = () => {
-        quitGame();
-        navigate('/');
-    };
+    const handleQuitConfirmed = () => { quitGame(); navigate('/'); };
 
-    const handleBoardClick = (cardId) => {
+    const handleBoardClick = (boardId) => {
         if (!selectedHandCard) return;
-        const success = makeMove(cardId, selectedHandCard.id);
+        const success = makeMove(boardId, selectedHandCard.id);
         if (success) {
             setSelectedHandCard(null);
             setHoveredMatches([]);
@@ -57,8 +47,6 @@ export default function OfflineGame() {
     const handleCardSelect = (card) => {
         setSelectedHandCard(card);
         if (card) {
-            // Lock in the matches for this card so they stay highlighted
-            // even after mouseLeave fires
             setSelectedHighlights(card.matches || []);
         } else {
             setSelectedHighlights([]);
@@ -67,19 +55,20 @@ export default function OfflineGame() {
     };
 
     const handleCardHover = (matches) => {
-        // Only show hover highlights if no card is selected yet
-        if (!selectedHandCard) {
-            setHoveredMatches(matches);
+        if (!selectedHandCard) setHoveredMatches(matches);
+    };
+
+    const handleDeclareDeadCard = (cardId) => {
+        const success = declareDeadCard(cardId);
+        if (success) {
+            setSelectedHandCard(null);
+            setHoveredMatches([]);
+            setSelectedHighlights([]);
         }
     };
 
     const handlePlayAgain = () => {
-        if (setupParams) {
-            startLocalGame(
-                setupParams.p1Name, setupParams.p2Name,
-                setupParams.p3Name, setupParams.sequencesToWin
-            );
-        }
+        if (setupParams) startLocalGame(setupParams.playerNames, setupParams.numPlayers);
         setSelectedHandCard(null);
         setHoveredMatches([]);
         setSelectedHighlights([]);
@@ -87,37 +76,30 @@ export default function OfflineGame() {
 
     if (!gameState) return null;
 
-    const currentTurn = Object.keys(gameState.players).find(k => gameState.players[k].isTurn);
-    const currentPlayerObj = gameState.players[currentTurn];
-
-    // Merge hover + selection highlights — selection takes priority
-    const effectiveHighlights = selectedHandCard
-        ? selectedHighlights
-        : hoveredMatches;
+    const currentTurnKey = gameState.turnOrder[gameState.currentTurnIndex];
+    const currentPlayerObj = gameState.players[currentTurnKey];
+    const effectiveHighlights = selectedHandCard ? selectedHighlights : hoveredMatches;
+    const lockedCells = gameState.protectedPatterns?.flat() || [];
 
     return (
-        /* 3-column grid: sidebar | board | hand */
         <div className="game-layout">
 
             {/* ── Left: info sidebar ─────────────────── */}
             <aside className="game-sidebar">
-                <button
-                    className="btn btn-ghost"
-                    onClick={() => setShowLeaveDialog(true)}
-                    style={{ fontSize: '0.8rem' }}
-                >
+                <button className="btn btn-ghost" onClick={() => setShowLeaveDialog(true)} style={{ fontSize: '0.8rem' }}>
                     ← Menu
                 </button>
                 <GameInfoPanel
                     scores={gameState.scores}
                     players={gameState.players}
-                    currentTurn={currentTurn}
+                    currentTurn={currentTurnKey}
                     deckCount={gameState.shuffledDeck ? gameState.shuffledDeck.length : 0}
                     playingAs={null}
+                    config={gameState.config}
                 />
             </aside>
 
-            {/* ── Center: board only, fills remaining height ── */}
+            {/* ── Center: board ──────────────────────── */}
             <main className="game-main">
                 <div className="board-area">
                     <div className="board-wrapper">
@@ -126,21 +108,26 @@ export default function OfflineGame() {
                             hoveredCards={effectiveHighlights}
                             selectedBoardId={null}
                             hasCardSelected={!!selectedHandCard}
+                            selectedHandCard={selectedHandCard}
+                            lockedCells={lockedCells}
+                            myTeamColor={currentPlayerObj?.team}
                             onBoardClick={handleBoardClick}
                         />
                     </div>
                 </div>
             </main>
 
-            {/* ── Right: player hand (vertical) ─────── */}
+            {/* ── Right: player hand ─────────────────── */}
             <aside className="hand-sidebar">
                 {status === 'playing' ? (
                     <PlayerHand
-                        hand={currentPlayerObj.hand}
+                        hand={currentPlayerObj?.hand}
                         isMyTurn={true}
                         selectedHandCard={selectedHandCard}
                         onCardSelect={handleCardSelect}
                         onCardHover={handleCardHover}
+                        onDeclareDeadCard={handleDeclareDeadCard}
+                        boardCards={gameState.cards}
                         vertical={true}
                     />
                 ) : (
@@ -155,13 +142,12 @@ export default function OfflineGame() {
             {/* Pass Device overlay */}
             {status === 'pass-device' && (
                 <PassDeviceScreen
-                    nextPlayerName={currentPlayerObj.name}
-                    nextTeam={currentPlayerObj.team}
+                    nextPlayerName={currentPlayerObj?.name}
+                    nextTeam={currentPlayerObj?.team}
                     onReady={continueTurn}
                 />
             )}
 
-            {/* Leave confirmation dialog */}
             <LeaveGameDialog
                 isOpen={showLeaveDialog}
                 onCancel={() => setShowLeaveDialog(false)}
@@ -169,11 +155,10 @@ export default function OfflineGame() {
                 isOnline={false}
             />
 
-            {/* Winner Modal */}
             <WinnerModal
                 winner={winner}
                 players={gameState.players}
-                sequencesToWin={setupParams?.sequencesToWin || 2}
+                sequencesToWin={gameState.config?.sequencesToWin || 2}
                 onPlayAgain={handlePlayAgain}
             />
         </div>

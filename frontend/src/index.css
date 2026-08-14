@@ -1188,3 +1188,83 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
     var(--bg-base);
 }
 
+/* ============================================================
+   LOCKED SEQUENCE CELLS
+   ============================================================ */
+
+/* Locked board cell — gold inner glow ring */
+.board-cell.locked {
+  cursor: default;
+}
+.board-cell.locked img {
+  filter: brightness(0.82) sepia(0.12);
+}
+
+/* Locked chip gets a gold pulse ring */
+.chip.locked-chip {
+  animation: chipPop 0.32s var(--ease-spring) forwards;
+}
+.chip-lock-ring {
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  border: 2px solid rgba(255,215,0,0.55);
+  box-shadow: 0 0 8px rgba(255,215,0,0.35), inset 0 0 6px rgba(255,215,0,0.2);
+  animation: lockRingPulse 2.8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 6;
+}
+@keyframes lockRingPulse {
+  0%,100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.06); }
+}
+
+/* ============================================================
+   ONE-EYED JACK — REMOVAL HIGHLIGHT
+   ============================================================ */
+
+.board-cell.highlight-removal {
+  cursor: pointer;
+  outline: 2px solid var(--team-red-light);
+  outline-offset: -2px;
+  z-index: 2;
+}
+.board-cell.highlight-removal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(193,74,74,0.12);
+  pointer-events: none;
+  z-index: 1;
+}
+.board-cell.highlight-removal:hover {
+  outline-width: 3px;
+  box-shadow: 0 0 10px rgba(193,74,74,0.5);
+  z-index: 5;
+}
+
+/* ============================================================
+   DEAD CARD — hand card visual state
+   ============================================================ */
+
+.hand-card-v.dead-card,
+.hand-card.dead-card {
+  opacity: 0.72;
+  filter: grayscale(0.3) sepia(0.15);
+}
+.hand-card-v.dead-card.selected,
+.hand-card.dead-card.selected {
+  box-shadow: 3px 0 0 2.5px #ff6b6b, 0 10px 24px rgba(0,0,0,0.55);
+}
+
+/* ============================================================
+   HAND SIDEBAR HINT — dead state
+   ============================================================ */
+
+.hand-sidebar-hint.dead {
+  color: #ff6b6b;
+  border-color: rgba(255,107,107,0.4);
+  background: rgba(255,107,107,0.08);
+}
+
+

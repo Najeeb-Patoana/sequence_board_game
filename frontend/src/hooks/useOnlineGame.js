@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { sanitiseName, sanitiseRoomCode, isValidRoomCode, clampToSet, VALID_PLAYER_COUNTS } from '../utils/sanitise';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
@@ -167,24 +168,30 @@ export function useOnlineGame() {
     const createCustomRoom = useCallback((playerName, targetPlayerCount = 2, numTeams) => {
         const socket = socketRef.current;
         if (!socket?.connected) { setErrorMsg('Not connected to server.'); return; }
-        pendingNameRef.current = playerName;
-        setPlayerInfo(prev => ({ ...prev, name: playerName }));
+        const safeName = sanitiseName(playerName);
+        if (!safeName) { setErrorMsg('Please enter a valid name (letters, numbers, spaces only).'); return; }
+        const safeCount = clampToSet(targetPlayerCount, VALID_PLAYER_COUNTS, 2);
+        pendingNameRef.current = safeName;
+        setPlayerInfo(prev => ({ ...prev, name: safeName }));
         setErrorMsg(null);
-        socket.emit('create_custom_room', { playerName, targetPlayerCount, numTeams });
+        socket.emit('create_custom_room', { playerName: safeName, targetPlayerCount: safeCount, numTeams });
     }, []);
 
     const joinCustomRoom = useCallback((roomIdOrCode, playerName) => {
         const socket = socketRef.current;
         if (!socket?.connected) { setErrorMsg('Not connected to server.'); return; }
-        pendingNameRef.current = playerName;
-        setPlayerInfo(prev => ({ ...prev, name: playerName }));
+        const safeName = sanitiseName(playerName);
+        if (!safeName) { setErrorMsg('Please enter a valid name (letters, numbers, spaces only).'); return; }
+        const safeCode = sanitiseRoomCode(roomIdOrCode);
+        if (!safeCode) { setErrorMsg('Invalid Room Code — use letters and numbers only.'); return; }
+        pendingNameRef.current = safeName;
+        setPlayerInfo(prev => ({ ...prev, name: safeName }));
         setErrorMsg(null);
 
-        // Detect if it looks like a 6-char room code (alpha-numeric uppercase)
-        const isCode = /^[A-Z0-9]{4,8}$/.test(roomIdOrCode.toUpperCase());
+        const isCode = isValidRoomCode(safeCode);
         const payload = isCode
-            ? { roomCode: roomIdOrCode.toUpperCase(), playerName }
-            : { roomId: roomIdOrCode, playerName };
+            ? { roomCode: safeCode, playerName: safeName }
+            : { roomId: safeCode.toLowerCase(), playerName: safeName };
 
         socket.emit('join_custom_room', payload, (response) => {
             if (!response?.success) {
@@ -213,10 +220,12 @@ export function useOnlineGame() {
     const playOnline = useCallback((playerName) => {
         const socket = socketRef.current;
         if (!socket?.connected) { setErrorMsg('Not connected to server.'); return; }
-        pendingNameRef.current = playerName;
-        setPlayerInfo(prev => ({ ...prev, name: playerName }));
+        const safeName = sanitiseName(playerName);
+        if (!safeName) { setErrorMsg('Please enter a valid name.'); return; }
+        pendingNameRef.current = safeName;
+        setPlayerInfo(prev => ({ ...prev, name: safeName }));
         setErrorMsg(null);
-        socket.emit('play_online', { playerName }, (response) => {
+        socket.emit('play_online', { playerName: safeName }, (response) => {
             if (response?.waiting) {
                 setRoomInfo({ roomId: response.waitingroom, roomCode: response.roomCode, isCustom: false });
                 setStatus('matchmaking');

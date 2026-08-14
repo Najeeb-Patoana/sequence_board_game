@@ -169,8 +169,8 @@ export default function OnlineGame() {
 
                                 {/* Join */}
                                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                                    <input type="text" className="input" placeholder="Enter Room Code" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} style={{ flex: 1, letterSpacing: '0.12em', fontWeight: 600 }} maxLength={8} />
-                                    <button id="btn-join-room" className="btn btn-primary" onClick={handleJoinCustom} disabled={!name.trim() || !joinCode.trim() || !isConnected}>Join</button>
+                                    <input type="text" className="input" placeholder="Enter Room Code" value={joinCode} onChange={e => setJoinCode(sanitiseRoomCode(e.target.value))} style={{ flex: 1, letterSpacing: '0.12em', fontWeight: 600 }} maxLength={8} autoCapitalize="characters" />
+                                    <button id="btn-join-room" className="btn btn-primary" onClick={handleJoinCustom} disabled={!sanitiseName(name) || joinCode.length < 4 || !isConnected}>Join</button>
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>

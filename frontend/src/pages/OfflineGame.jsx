@@ -12,10 +12,11 @@ export default function OfflineGame() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [hoveredMatches,    setHoveredMatches]    = useState([]);
+    const [hoveredMatches,     setHoveredMatches]    = useState([]);
+    const [hoveredCard,        setHoveredCard]       = useState(null);
     const [selectedHighlights, setSelectedHighlights] = useState([]);
-    const [selectedHandCard,  setSelectedHandCard]  = useState(null);
-    const [showLeaveDialog,   setShowLeaveDialog]   = useState(false);
+    const [selectedHandCard,   setSelectedHandCard]  = useState(null);
+    const [showLeaveDialog,    setShowLeaveDialog]   = useState(false);
 
     const {
         status, gameState, winner,
@@ -40,12 +41,14 @@ export default function OfflineGame() {
         if (success) {
             setSelectedHandCard(null);
             setHoveredMatches([]);
+            setHoveredCard(null);
             setSelectedHighlights([]);
         }
     };
 
     const handleCardSelect = (card) => {
         setSelectedHandCard(card);
+        setHoveredCard(null);
         if (card) {
             setSelectedHighlights(card.matches || []);
         } else {
@@ -54,8 +57,11 @@ export default function OfflineGame() {
         }
     };
 
-    const handleCardHover = (matches) => {
-        if (!selectedHandCard) setHoveredMatches(matches);
+    const handleCardHover = (matches, card) => {
+        if (!selectedHandCard) {
+            setHoveredMatches(matches || []);
+            setHoveredCard(card || null);
+        }
     };
 
     const handleDeclareDeadCard = (cardId) => {
@@ -63,6 +69,7 @@ export default function OfflineGame() {
         if (success) {
             setSelectedHandCard(null);
             setHoveredMatches([]);
+            setHoveredCard(null);
             setSelectedHighlights([]);
         }
     };
@@ -71,6 +78,7 @@ export default function OfflineGame() {
         if (setupParams) startLocalGame(setupParams.playerNames, setupParams.numPlayers);
         setSelectedHandCard(null);
         setHoveredMatches([]);
+        setHoveredCard(null);
         setSelectedHighlights([]);
     };
 
@@ -112,6 +120,7 @@ export default function OfflineGame() {
                             lockedCells={lockedCells}
                             myTeamColor={currentPlayerObj?.team}
                             onBoardClick={handleBoardClick}
+                            hoveredCard={selectedHandCard ? null : hoveredCard}
                         />
                     </div>
                 </div>

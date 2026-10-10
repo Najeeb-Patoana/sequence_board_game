@@ -23,6 +23,7 @@ export default function OnlineGame() {
     const [setupState,        setSetupState]      = useState(urlRoomId ? 'joining' : 'setup');
 
     const [hoveredMatches,     setHoveredMatches]     = useState([]);
+    const [hoveredCard,        setHoveredCard]        = useState(null);
     const [selectedHighlights, setSelectedHighlights] = useState([]);
     const [selectedHandCard,   setSelectedHandCard]   = useState(null);
     const [showLeaveDialog,    setShowLeaveDialog]    = useState(false);
@@ -69,12 +70,14 @@ export default function OnlineGame() {
             makeMove(boardId, selectedHandCard.id);
             setSelectedHandCard(null);
             setHoveredMatches([]);
+            setHoveredCard(null);
             setSelectedHighlights([]);
         }
     };
 
     const handleCardSelect = (card) => {
         setSelectedHandCard(card);
+        setHoveredCard(null);
         if (card) {
             setSelectedHighlights(card.matches || []);
         } else {
@@ -83,14 +86,18 @@ export default function OnlineGame() {
         }
     };
 
-    const handleCardHover = (matches) => {
-        if (!selectedHandCard) setHoveredMatches(matches);
+    const handleCardHover = (matches, card) => {
+        if (!selectedHandCard) {
+            setHoveredMatches(matches || []);
+            setHoveredCard(card || null);
+        }
     };
 
     const handleDeclareDeadCard = (cardId) => {
         declareDeadCard(cardId);
         setSelectedHandCard(null);
         setHoveredMatches([]);
+        setHoveredCard(null);
         setSelectedHighlights([]);
     };
 
@@ -142,7 +149,7 @@ export default function OnlineGame() {
                         {errorMsg && (
                             <div style={{ background: 'rgba(193,74,74,0.1)', border: '1px solid rgba(193,74,74,0.3)', color: '#de7a7a', padding: '0.75rem 1rem', borderRadius: 'var(--r-md)', marginBottom: '1.25rem', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                                 <span>{errorMsg}</span>
-                                <button style={{ background: 'none', border: 'none', color: '#de7a7a', cursor: 'pointer', fontWeight: 700, flexShrink: 0 }} onClick={() => { setStatus('idle'); setSetupState('setup'); }}>✕</button>
+                                <button style={{ background: 'none', border: 'none', color: '#de7a7a', cursor: 'pointer', fontWeight: 700, flexShrink: 0, fontSize: '1rem', lineHeight: 1 }} onClick={() => { setStatus('idle'); setSetupState('setup'); }} title="Close">×</button>
                             </div>
                         )}
 
@@ -270,8 +277,8 @@ export default function OnlineGame() {
                             fontSize: '0.75rem', lineHeight: 1.4,
                         }}>
                             {disconnectAlert.type === 'disconnected'
-                                ? `⚡ A player disconnected. 60s reconnect window open.`
-                                : `⚠ ${disconnectAlert.name || 'A player'} failed to reconnect.`
+                                ? `A player disconnected. 60s reconnect window open.`
+                                : `${disconnectAlert.name || 'A player'} failed to reconnect.`
                             }
                         </div>
                     )}
@@ -305,6 +312,7 @@ export default function OnlineGame() {
                                 lockedCells={lockedCells}
                                 myTeamColor={myTeamColor}
                                 onBoardClick={handleBoardClick}
+                                hoveredCard={selectedHandCard ? null : hoveredCard}
                             />
                         </div>
                     </div>

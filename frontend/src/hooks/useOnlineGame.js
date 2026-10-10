@@ -104,6 +104,10 @@ export function useOnlineGame() {
             setErrorMsg(null);
         });
 
+        socket.on('error_msg', (data) => {
+            setErrorMsg(data?.message || 'Server error occurred.');
+        });
+
         socket.on('room_join_error', (err) => {
             setErrorMsg(err?.message || 'Could not join room. Check the Room Code.');
             setStatus('idle');

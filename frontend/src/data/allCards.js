@@ -701,56 +701,56 @@ const allCards = [{
 }, {
   id: 101,
   name: "Jack of Diamonds",
-  img: "/cards/jack_of_diamonds.png",
+  img: "/cards/jack_of_diamonds.svg",
   selected: false,
   selectedby : "",
   matches: []
 }, {
   id: 102,
   name: "Jack of Diamonds",
-  img: "/cards/jack_of_diamonds.png",
+  img: "/cards/jack_of_diamonds.svg",
   selected: false,
   selectedby : "",
   matches: []
 }, {
   id: 103,
   name: "Jack of Clubs",
-  img: "/cards/jack_of_clubs.png",
+  img: "/cards/jack_of_clubs.svg",
   selected: false,
   selectedby : "",
   matches: []
 }, {
   id: 104,
   name: "Jack of Clubs",
-  img: "/cards/jack_of_clubs.png",
+  img: "/cards/jack_of_clubs.svg",
   selected: false,
   selectedby : "",
   matches: []
 }, {
   id: 105,
   name: "Jack of Spades",
-  img: "/cards/jack_of_spades.png",
+  img: "/cards/jack_of_spades.svg",
   selected: false,
   selectedby : "",
   matches: []
 }, {
   id: 106,
   name: "Jack of Spades",
-  img: "/cards/jack_of_spades.png",
+  img: "/cards/jack_of_spades.svg",
   selected: false,
   selectedby : "",
   matches: []
 }, {
   id: 107,
   name: "Jack of Hearts",
-  img: "/cards/jack_of_hearts.png",
+  img: "/cards/jack_of_hearts.svg",
   selected: false,
   selectedby : "",
   matches: []
 }, {
   id: 108,
   name: "Jack of Hearts",
-  img: "/cards/jack_of_hearts.png",
+  img: "/cards/jack_of_hearts.svg",
   selected: false,
   selectedby : "",
   matches: []

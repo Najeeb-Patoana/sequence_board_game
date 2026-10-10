@@ -51,14 +51,18 @@ function PlayerSlot({ player, isMe }) {
             {/* Badges */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
                 {player.isHost && (
-                    <span title="Host" style={{ fontSize: '0.9rem' }}>👑</span>
+                    <span style={{
+                        fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.08em',
+                        background: 'rgba(201,168,76,0.14)', border: '1px solid rgba(201,168,76,0.35)',
+                        color: 'var(--gold)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase',
+                    }}>Host</span>
                 )}
                 {player.isReady ? (
                     <span style={{
                         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em',
                         background: 'rgba(52,199,89,0.12)', border: '1px solid rgba(52,199,89,0.3)',
                         color: '#34c759', padding: '2px 7px', borderRadius: '4px', textTransform: 'uppercase',
-                    }}>Ready ✓</span>
+                    }}>Ready</span>
                 ) : (
                     <span style={{
                         fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em',
@@ -207,7 +211,7 @@ export default function LobbyRoom({
                                         borderRadius: '8px', padding: '0.55rem 0.85rem',
                                         fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
                                         transition: 'all 0.2s', whiteSpace: 'nowrap',
-                                    }}>{copied ? '✓ Copied' : 'Copy Link'}</button>
+                                    }}>{copied ? 'Copied' : 'Copy Link'}</button>
                                 </div>
                             </div>
                         )}
@@ -222,7 +226,7 @@ export default function LobbyRoom({
                                     player
                                         ? <PlayerSlot key={player.playerKey} player={player} isMe={player.playerKey === myPlayerKey} />
                                         : <EmptySlot key={`empty-${i}`} index={i + 1} />
-                                )}
+                                 )}
                             </div>
                         </div>
 
@@ -246,7 +250,7 @@ export default function LobbyRoom({
                                         fontFamily: "'Inter', system-ui, sans-serif",
                                     }}
                                 >
-                                    {myPlayer.isReady ? '✗ Cancel Ready' : '✓ Ready Up'}
+                                    {myPlayer.isReady ? 'Cancel Ready' : 'Ready Up'}
                                 </button>
                             )}
 

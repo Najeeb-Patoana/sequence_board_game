@@ -4,6 +4,7 @@
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap');
+@import "tailwindcss";
 
 :root {
   /* ─── Backgrounds ─── */
@@ -85,6 +86,21 @@ body {
 }
 #root { display: flex; flex-direction: column; min-height: 100vh; }
 h1,h2,h3,h4,h5,h6 { line-height: 1.2; }
+
+/* ============================================================
+   TURN PULSE ANIMATION
+   ============================================================ */
+.turn-pulse {
+  animation: pulseOpacity 1.2s ease-in-out infinite alternate;
+}
+.turn-pulse.blue { background-color: var(--team-blue-light); box-shadow: 0 0 8px var(--team-blue-glow); }
+.turn-pulse.red { background-color: var(--team-red-light); box-shadow: 0 0 8px var(--team-red-glow); }
+.turn-pulse.green { background-color: var(--team-green-light); box-shadow: 0 0 8px var(--team-green-glow); }
+
+@keyframes pulseOpacity {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.1); }
+}
 
 /* ============================================================
    LAYOUT UTILITIES  (minimal — only what components rely on)
@@ -309,6 +325,12 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
               box-shadow 0.18s ease;
   transform-origin: left center;
 }
+
+@keyframes slideInHand {
+  0% { opacity: 0; transform: translateX(-20px) scale(0.9); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
 .hand-card-v img {
   width: 100%;
   height: 100%;
@@ -327,23 +349,18 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   box-shadow: 3px 0 0 2.5px var(--gold), 0 10px 24px rgba(0,0,0,0.55);
   z-index: 20;
 }
-/* Gold check badge */
+/* Gold indicator pip */
 .hand-card-v.selected::after {
-  content: '✓';
+  content: '';
   position: absolute;
-  top: -7px;
-  right: -7px;
+  top: -6px;
+  right: -6px;
   background: var(--gold);
-  color: #0d0d0d;
-  font-size: 8px;
-  font-weight: 900;
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  border: 2px solid #141414;
+  box-shadow: 0 0 6px var(--gold-glow);
 }
 
 /* ============================================================
@@ -512,21 +529,48 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
 /* Valid placement highlight */
 .board-cell.highlight-valid {
   cursor: pointer;
-  outline: 2px solid var(--highlight);
-  outline-offset: -2px;
+  outline: 2.5px solid var(--gold);
+  outline-offset: -2.5px;
   z-index: 2;
+  box-shadow: inset 0 0 10px rgba(201,168,76,0.25);
+  transition: outline-color var(--t-fast), box-shadow var(--t-fast);
 }
 .board-cell.highlight-valid::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--highlight-dim);
+  background: rgba(201,168,76,0.16);
   pointer-events: none;
   z-index: 1;
 }
 .board-cell.highlight-valid:hover {
   outline-width: 3px;
-  box-shadow: 0 0 10px var(--highlight-glow);
+  outline-color: var(--gold-light);
+  box-shadow: inset 0 0 16px rgba(201,168,76,0.45);
+  z-index: 5;
+}
+
+/* Removal highlight (One-Eyed Jack) */
+.board-cell.highlight-removal {
+  cursor: pointer;
+  outline: 2.5px solid var(--team-red-light);
+  outline-offset: -2.5px;
+  z-index: 2;
+  box-shadow: inset 0 0 10px rgba(193,74,74,0.3);
+  transition: outline-color var(--t-fast), box-shadow var(--t-fast);
+}
+.board-cell.highlight-removal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(193,74,74,0.18);
+  pointer-events: none;
+  z-index: 1;
+}
+.board-cell.highlight-removal:hover {
+  outline-width: 3px;
+  outline-color: #ff5252;
+  box-shadow: inset 0 0 16px rgba(193,74,74,0.55);
   z-index: 5;
 }
 
@@ -741,21 +785,16 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
   z-index: 20;
 }
 .hand-card.selected::after {
-  content: '✓';
+  content: '';
   position: absolute;
-  top: -8px;
-  right: -7px;
+  top: -6px;
+  right: -6px;
   background: var(--gold);
-  color: #0d0d0d;
-  font-size: 8px;
-  font-weight: 900;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  border: 2px solid #141414;
+  box-shadow: 0 0 6px var(--gold-glow);
 }
 @media (max-width: 640px) {
   .hand-card { width: 44px; height: 62px; }
@@ -847,13 +886,8 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
 .turn-pulse.red   { background: var(--team-red-light); }
 .turn-pulse.green { background: var(--team-green-light); }
 @keyframes dotPulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.4; transform: scale(1.6); }
-}
-
-@keyframes dotPulse {
-  0%, 100% { opacity: 0.25; transform: scale(0.8); }
-  50%       { opacity: 1;    transform: scale(1.1); }
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50%       { opacity: 1;    transform: scale(1.15); }
 }
 
 /* ── Deck widget: stacked card-back images ── */
@@ -1217,30 +1251,6 @@ select.input option { background: var(--bg-elevated); color: var(--text-primary)
 @keyframes lockRingPulse {
   0%,100% { opacity: 0.6; transform: scale(1); }
   50%      { opacity: 1;   transform: scale(1.06); }
-}
-
-/* ============================================================
-   ONE-EYED JACK — REMOVAL HIGHLIGHT
-   ============================================================ */
-
-.board-cell.highlight-removal {
-  cursor: pointer;
-  outline: 2px solid var(--team-red-light);
-  outline-offset: -2px;
-  z-index: 2;
-}
-.board-cell.highlight-removal::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(193,74,74,0.12);
-  pointer-events: none;
-  z-index: 1;
-}
-.board-cell.highlight-removal:hover {
-  outline-width: 3px;
-  box-shadow: 0 0 10px rgba(193,74,74,0.5);
-  z-index: 5;
 }
 
 /* ============================================================

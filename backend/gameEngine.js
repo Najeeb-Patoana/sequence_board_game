@@ -8,13 +8,17 @@ const CORNER_IDS = [1, 10, 91, 100];
 // Official hand sizes keyed by total player count
 const HAND_SIZE_MAP = { 2: 7, 3: 6, 4: 6, 6: 5, 8: 4, 9: 4, 10: 3, 12: 3 };
 
-// Jack card IDs (two decks → two copies each)
-// Two-Eyed (Wild)   : J♦ (101,102)  J♠ (105,106)
-// One-Eyed (Removal): J♣ (103,104)  J♥ (107,108)
-const TWO_EYED_JACK_IDS = new Set([101, 102, 105, 106]);
-const ONE_EYED_JACK_IDS = new Set([103, 104, 107, 108]);
+// Jack card IDs (two decks -> two copies each)
+// Two-Eyed (Wild)   : Jack of Diamonds (101, 102), Jack of Clubs (103, 104)
+// One-Eyed (Removal): Jack of Spades (105, 106), Jack of Hearts (107, 108)
+const TWO_EYED_JACK_IDS = new Set([101, 102, 103, 104]);
+const ONE_EYED_JACK_IDS = new Set([105, 106, 107, 108]);
 
 // ── Helpers ──────────────────────────────────────────────────
+
+function isCellOccupied(cell) {
+    return Boolean(cell && (cell.selected === 'True' || cell.selected === true));
+}
 
 function shuffleDeck(cards) {
     const arr = cards.slice();
@@ -78,6 +82,7 @@ function buildTurnOrder(numPlayers, numTeams) {
  * existing locked (completed) sequence.
  */
 function isInLockedSequence(boardId, protectedPatterns) {
+    if (!protectedPatterns || !Array.isArray(protectedPatterns)) return false;
     return protectedPatterns.some(pattern => pattern.includes(boardId));
 }
 
@@ -88,11 +93,12 @@ function isInLockedSequence(boardId, protectedPatterns) {
  * AND the card is not a Jack.
  */
 function isDeadCard(handCard, boardCards) {
-    if (!handCard.matches || handCard.matches.length === 0) return false;
-    if (TWO_EYED_JACK_IDS.has(handCard.id) || ONE_EYED_JACK_IDS.has(handCard.id)) return false;
+    if (!handCard || !handCard.matches || handCard.matches.length === 0) return false;
+    const cardId = Number(handCard.id);
+    if (TWO_EYED_JACK_IDS.has(cardId) || ONE_EYED_JACK_IDS.has(cardId)) return false;
     return handCard.matches.every(boardId => {
         const bc = boardCards[boardId - 1];
-        return bc && (bc.selected === 'True' || CORNER_IDS.includes(boardId));
+        return isCellOccupied(bc) || CORNER_IDS.includes(boardId);
     });
 }
 
@@ -122,8 +128,6 @@ function initializeGame(allCards, config = {}) {
     const turnOrder = buildTurnOrder(numPlayers, numTeams);
 
     // Team assignment: players in the same team-slot share a color
-    const playersPerTeam = numTeams === numPlayers ? 1 : numPlayers / numTeams;
-
     for (let i = 0; i < numPlayers; i++) {
         const key = `player${i + 1}`;
         // Team index: for individual play each player is their own team
@@ -144,7 +148,7 @@ function initializeGame(allCards, config = {}) {
 
     const remainingDeck = initialDeck.slice(numPlayers * handSize);
 
-    // Board: snapshot of allCards (ids 1-100 only, corners pre-set as wild)
+    // Board: snapshot of allCards (ids 1-100 only)
     const boardCards = JSON.parse(JSON.stringify(allCards.filter(c => c.id <= 100)));
 
     return {
@@ -180,6 +184,7 @@ function handleCardSelection(game, boardId, currentTurn, selectedCardId, actionT
 
     const cardFromHand = playerHand[cardFromHandIndex];
     const teamColor = currentPlayer.team;
+    const cardIdNum = Number(selectedCardId);
 
     // ── DISCARD_DEAD_CARD ─────────────────────────────────────
     if (actionType === 'DISCARD_DEAD_CARD') {
@@ -192,28 +197,28 @@ function handleCardSelection(game, boardId, currentTurn, selectedCardId, actionT
             playerHand.push(newGame.shuffledDeck.shift());
         }
         currentPlayer.hand = playerHand;
-        // Advance turn
-        const { nextTurn, nextIndex } = advanceTurn(newGame, currentTurn);
-        newGame.players[currentTurn].isTurn = false;
-        newGame.players[nextTurn].isTurn = true;
-        newGame.currentTurnIndex = nextIndex;
-        return { success: true, game: newGame, currentPlayer: currentTurn, nextPlayer: nextTurn, wasDeadCard: true };
+
+        // In official Sequence rules, player replaces dead card and takes their turn.
+        // If hand has no playable moves, turn passes; otherwise turn continues.
+        return { success: true, game: newGame, currentPlayer: currentTurn, nextPlayer: currentTurn, wasDeadCard: true };
     }
 
     // ── PLAY_CARD ─────────────────────────────────────────────
     const cardInQuestion = newGame.cards[boardId - 1];
     if (!cardInQuestion) return { success: false, message: 'Invalid board position' };
 
-    if (TWO_EYED_JACK_IDS.has(selectedCardId)) {
+    const occupied = isCellOccupied(cardInQuestion);
+
+    if (TWO_EYED_JACK_IDS.has(cardIdNum)) {
         // Wild: place chip on any empty non-corner space
         if (CORNER_IDS.includes(boardId)) return { success: false, message: 'Cannot place on corner' };
-        if (cardInQuestion.selected === 'True') return { success: false, message: 'Space already occupied' };
+        if (occupied) return { success: false, message: 'Space already occupied' };
         cardInQuestion.selected = 'True';
         cardInQuestion.selectedby = teamColor;
 
-    } else if (ONE_EYED_JACK_IDS.has(selectedCardId)) {
+    } else if (ONE_EYED_JACK_IDS.has(cardIdNum)) {
         // Removal: remove any opponent chip not in a locked sequence
-        if (cardInQuestion.selected !== 'True') return { success: false, message: 'No chip to remove' };
+        if (!occupied) return { success: false, message: 'No chip to remove' };
         if (cardInQuestion.selectedby === teamColor) return { success: false, message: 'Cannot remove own chip' };
         if (CORNER_IDS.includes(boardId)) return { success: false, message: 'Cannot remove corner' };
         if (isInLockedSequence(boardId, newGame.protectedPatterns)) {
@@ -225,7 +230,7 @@ function handleCardSelection(game, boardId, currentTurn, selectedCardId, actionT
     } else {
         // Normal card
         if (CORNER_IDS.includes(boardId)) return { success: false, message: 'Cannot play on corner' };
-        if (cardInQuestion.selected === 'True') return { success: false, message: 'Space already occupied' };
+        if (occupied) return { success: false, message: 'Space already occupied' };
         if (!cardFromHand.matches || !cardFromHand.matches.includes(boardId)) {
             return { success: false, message: 'Card does not match board space' };
         }
@@ -274,8 +279,9 @@ function checkPatterns(game) {
         Array.from({ length: 10 }, (_, c) => {
             const id = r * 10 + c + 1;
             const card = newGame.cards[id - 1];
+            const occupied = isCellOccupied(card);
             return {
-                color: card?.selectedby || null,
+                color: occupied ? (card?.selectedby || null) : null,
                 isCorner: CORNER_IDS.includes(id),
                 index: id,
             };
@@ -306,8 +312,7 @@ function checkPatterns(game) {
      * Scan an array of cells for a run of 5 with the given color (corners = wild).
      * Returns all found new sequences.
      */
-    const findSequences = (cells, color) => {
-        const found = [];
+    const scanCellArray = (cells, color) => {
         let run = [];
         for (const cell of cells) {
             if (effectiveColor(cell, color) === color) {
@@ -315,58 +320,52 @@ function checkPatterns(game) {
                 if (run.length === 5) {
                     const pat = [...run];
                     if (!isAlreadyCounted(pat) && hasValidOverlap(pat)) {
-                        found.push(pat);
+                        // Immediately register sequence to prevent overlapping runs sharing > 1 chip
+                        existingPatterns.push(pat);
+                        newGame.scores[color] = (newGame.scores[color] || 0) + 1;
                     }
-                    // Allow sliding window past locked subsequences (9-in-a-row = 2)
+                    // Slide window to allow consecutive valid sequences (e.g. 9-in-a-row)
                     run.shift();
                 }
             } else {
                 run = [];
             }
         }
-        return found;
     };
 
     const runForColor = (color) => {
-        const newSeqs = [];
-
         // Rows
         for (let r = 0; r < 10; r++) {
-            newSeqs.push(...findSequences(board[r], color));
+            scanCellArray(board[r], color);
         }
 
         // Columns
         for (let c = 0; c < 10; c++) {
-            newSeqs.push(...findSequences(board.map(row => row[c]), color));
+            scanCellArray(board.map(row => row[c]), color);
         }
 
         // Down-right diagonals
         for (let r = 0; r < 10; r++) {
             const diag = [];
             for (let d = 0; r + d < 10 && d < 10; d++) diag.push(board[r + d][d]);
-            if (diag.length >= 5) newSeqs.push(...findSequences(diag, color));
+            if (diag.length >= 5) scanCellArray(diag, color);
         }
         for (let c = 1; c < 10; c++) {
             const diag = [];
             for (let d = 0; c + d < 10 && d < 10; d++) diag.push(board[d][c + d]);
-            if (diag.length >= 5) newSeqs.push(...findSequences(diag, color));
+            if (diag.length >= 5) scanCellArray(diag, color);
         }
 
         // Up-right diagonals
         for (let r = 9; r >= 0; r--) {
             const diag = [];
             for (let d = 0; r - d >= 0 && d < 10; d++) diag.push(board[r - d][d]);
-            if (diag.length >= 5) newSeqs.push(...findSequences(diag, color));
+            if (diag.length >= 5) scanCellArray(diag, color);
         }
         for (let c = 1; c < 10; c++) {
             const diag = [];
             for (let d = 0; d < 10 && c + d < 10; d++) diag.push(board[9 - d][c + d]);
-            if (diag.length >= 5) newSeqs.push(...findSequences(diag, color));
-        }
-
-        for (const seq of newSeqs) {
-            newGame.protectedPatterns.push(seq);
-            newGame.scores[color] = (newGame.scores[color] || 0) + 1;
+            if (diag.length >= 5) scanCellArray(diag, color);
         }
     };
 
@@ -376,7 +375,7 @@ function checkPatterns(game) {
 
     const sequencesToWin = newGame.config?.sequencesToWin ?? 2;
 
-    // For team games: sum scores per team color
+    // For team games: check winner
     let winner = null;
     for (const color of colors) {
         if ((newGame.scores[color] || 0) >= sequencesToWin) {
@@ -408,18 +407,20 @@ function getValidMoves(game, playerKey) {
             continue;
         }
 
-        if (TWO_EYED_JACK_IDS.has(card.id)) {
+        const cardIdNum = Number(card.id);
+
+        if (TWO_EYED_JACK_IDS.has(cardIdNum)) {
             // Can place on any empty non-corner
             for (const bc of cards) {
-                if (!CORNER_IDS.includes(bc.id) && bc.selected !== 'True') {
+                if (!CORNER_IDS.includes(bc.id) && !isCellOccupied(bc)) {
                     moves.push({ card, boardId: bc.id, actionType: 'PLAY_CARD' });
                 }
             }
-        } else if (ONE_EYED_JACK_IDS.has(card.id)) {
+        } else if (ONE_EYED_JACK_IDS.has(cardIdNum)) {
             // Can remove any unlocked opponent chip
             for (const bc of cards) {
                 if (
-                    bc.selected === 'True' &&
+                    isCellOccupied(bc) &&
                     bc.selectedby !== teamColor &&
                     !CORNER_IDS.includes(bc.id) &&
                     !isInLockedSequence(bc.id, protectedPatterns)
@@ -432,7 +433,7 @@ function getValidMoves(game, playerKey) {
             if (card.matches) {
                 for (const boardId of card.matches) {
                     const bc = cards[boardId - 1];
-                    if (bc && bc.selected !== 'True' && !CORNER_IDS.includes(boardId)) {
+                    if (bc && !isCellOccupied(bc) && !CORNER_IDS.includes(boardId)) {
                         moves.push({ card, boardId, actionType: 'PLAY_CARD' });
                     }
                 }
@@ -456,7 +457,7 @@ function getValidMoves(game, playerKey) {
  */
 function getBoardMatrix(game) {
     const TEAM_IDX = { blue: 1, red: 2, green: 3 };
-    const lockedIds = new Set(game.protectedPatterns.flat());
+    const lockedIds = new Set((game.protectedPatterns || []).flat());
 
     return Array.from({ length: 10 }, (_, r) =>
         Array.from({ length: 10 }, (_, c) => {
@@ -464,7 +465,7 @@ function getBoardMatrix(game) {
             if (CORNER_IDS.includes(id)) return -1;
             if (lockedIds.has(id)) return -2;
             const card = game.cards[id - 1];
-            if (!card || card.selected !== 'True') return 0;
+            if (!isCellOccupied(card)) return 0;
             return TEAM_IDX[card.selectedby] || 0;
         })
     );
@@ -509,6 +510,7 @@ module.exports = {
     isDeadCard,
     isInLockedSequence,
     buildTurnOrder,
+    isCellOccupied,
     CORNER_IDS,
     TWO_EYED_JACK_IDS,
     ONE_EYED_JACK_IDS,

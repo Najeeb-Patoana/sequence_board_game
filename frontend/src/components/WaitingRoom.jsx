@@ -57,7 +57,7 @@ export default function WaitingRoom({ roomId, onLeave }) {
                             className={`room-code-copy-btn ${copied ? 'copied' : ''}`}
                             onClick={handleCopyLink}
                         >
-                            {copied ? '✓ Copied!' : 'Copy Link'}
+                            {copied ? 'Copied' : 'Copy Link'}
                         </button>
                     </div>
                     <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', wordBreak: 'break-all', lineHeight: 1.4 }}>

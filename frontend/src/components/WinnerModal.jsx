@@ -68,10 +68,15 @@ export default function WinnerModal({ winner, players, sequencesToWin, onPlayAga
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.5rem',
                     animation: 'bounceIn 0.5s cubic-bezier(0.34,1.56,0.64,1)',
                 }}>
-                    🏆
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                        <path d="M4 22h16"></path>
+                        <path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34"></path>
+                        <path d="M6 4h12v6a6 6 0 0 1-12 0V4z"></path>
+                    </svg>
                 </div>
 
                 <h1 style={{

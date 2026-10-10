@@ -35,10 +35,12 @@ export default function PassDeviceScreen({ nextPlayerName, nextTeam, onReady }) 
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.6rem',
                     margin: '0 auto 1.25rem',
                 }}>
-                    📱
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
                 </div>
 
                 <h2 style={{

@@ -98,7 +98,7 @@ function sanitiseDifficulty(raw) {
  */
 function sanitiseSessionId(raw) {
     if (typeof raw !== 'string') return null;
-    return /^[a-z0-9]{8,20}$/.test(raw) ? raw : null;
+    return /^[a-z0-9]{8,64}$/.test(raw) ? raw : null;
 }
 
 // ── Rate limiter ───────────────────────────────────────────────
